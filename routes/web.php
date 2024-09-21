@@ -2,15 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TipoAsignacionController;
-use App\Http\Controllers\MotivoController;
+use App\Http\Controllers\ReasonController;
 use App\Http\Controllers\VacanteController;
-use App\Http\Controllers\ZonaController;
+use App\Http\Controllers\RegionController;
 use App\Http\Controllers\ZonaDependenciaController;
 use App\Http\Controllers\ZonaDependenciaProgramaController;
-use App\Http\Controllers\DocenteController;
+use App\Http\Controllers\LecturerController;
 use App\Http\Controllers\ExperienciaEducativaController;
 use App\Http\Controllers\LogUserActivityController;
-use App\Http\Controllers\PeriodoController;
+use App\Http\Controllers\SchoolPeriodController;
+use App\Models\Region;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,19 +89,19 @@ Route::post('api/fetch-dependenciaVacante', [VacanteController::class, 'fetchDep
 Route::post('api/fetch-programaVacante', [VacanteController::class, 'fetchProgramaVacante']);
 Route::post('api/fetch-filtroNombre', [VacanteController::class, 'fetchFiltroNombre']);
 
-Route::controller(DocenteController::class)->group(function (){
+Route::controller(LecturerController::class)->group(function (){
 
-    Route::name('docente.')->group(function (){
+    Route::name('lecturer.')->group(function (){
 
-        Route::get('/docente',  'index') ->name('index');
-        Route::get('/docente/create',  'create')->name('create');
-        Route::post('/docente',  'store')->name('store');
-        Route::delete('/docente/destroy/{id}',  'destroy')->name('destroy');
+        Route::get('/lecturer',  'index') ->name('index');
+        Route::get('/lecturer/create',  'create')->name('create');
+        Route::post('/lecturer',  'store')->name('store');
+        Route::delete('/lecturer/destroy/{staff_number}',  'destroy')->name('destroy');
 
-        Route::get('/docente/edit/{id}','edit')->name('edit');
-        Route::post('/docente/update/{id}','update')->name('update');
+        Route::get('/lecturer/edit/{staff_number}','edit')->name('edit');
+        Route::post('/lecturer/update/{staff_number}','update')->name('update');
 
-        Route::get('/docente/export','export')->name('export');
+        Route::get('/lecturer/export','export')->name('export');
 
 
     });
@@ -133,19 +134,19 @@ Route::controller(ExperienciaEducativaController::class)->group(function (){
 
 });
 
-Route::controller(PeriodoController::class)->group(function (){
+Route::controller(SchoolPeriodController::class)->group(function (){
 
-    Route::name('periodo.')->group(function (){
+    Route::name('schoolPeriod.')->group(function (){
 
-        Route::get('/periodo',  'index') ->name('index');
-        Route::get('/periodo/create',  'create')->name('create');
-        Route::post('/periodo',  'store')->name('store');
-        Route::delete('/periodo/destroy/{id}',  'destroy')->name('destroy');
+        Route::get('/schoolPeriod',  'index') ->name('index');
+        Route::get('/schoolPeriod/create',  'create')->name('create');
+        Route::post('/schoolPeriod',  'store')->name('store');
+        Route::delete('/schoolPeriod/destroy/{code}',  'destroy')->name('destroy');
 
-        Route::get('/periodo/edit/{id}','edit')->name('edit');
-        Route::post('/periodo/update/{id}','update')->name('update');
+        Route::get('/schoolPeriod/edit/{code}','edit')->name('edit');
+        Route::post('/schoolPeriod/update/{code}','update')->name('update');
 
-        Route::post('/periodo/updatePA/{id}','updatePA')->name('updatePA');
+        Route::post('/schoolPeriod/updateStatus/{code}','updateStatus')->name('updateStatus');
 
 
     });
@@ -169,34 +170,34 @@ Route::controller(TipoAsignacionController::class)->group(function (){
 });
 
 
-Route::controller(MotivoController::class)->group(function (){
+Route::controller(ReasonController::class)->group(function (){
 
-    Route::name('motivo.')->group(function (){
+    Route::name('reason.')->group(function (){
 
-        Route::get('/motivo',  'index') ->name('index');
-        Route::get('/motivo/create',  'create')->name('create');
-        Route::post('/motivo',  'store')->name('store');
-        Route::delete('/motivo/destroy/{id}',  'destroy')->name('destroy');
+        Route::get('/reason',  'index') ->name('index');
+        Route::get('/reason/create',  'create')->name('create');
+        Route::post('/reason',  'store')->name('store');
+        Route::delete('/reason/destroy/{code}',  'destroy')->name('destroy');
 
-        Route::get('/motivo/edit/{id}','edit')->name('edit');
-        Route::post('/motivo/update/{id}','update')->name('update');
+        Route::get('/reason/edit/{code}','edit')->name('edit');
+        Route::post('/reason/update/{code}','update')->name('update');
 
     });
 
 });
 
 
-Route::controller(ZonaController::class)->group(function (){
+Route::controller(RegionController::class)->group(function (){
 
-    Route::name('zona.')->group(function (){
+    Route::name('region.')->group(function (){
 
-        Route::get('/zona',  'index') ->name('index');
-        Route::get('/zona/create',  'create')->name('create');
-        Route::post('/zona',  'store')->name('store');
-        Route::delete('/zona/destroy/{id}',  'destroy')->name('destroy');
+        Route::get('/region',  'index') ->name('index');
+        Route::get('/region/create',  'create')->name('create');
+        Route::post('/region',  'store')->name('store');
+        Route::delete('/region/destroy/{code}',  'destroy')->name('destroy');
 
-        Route::get('/zona/edit/{id}','edit')->name('edit');
-        Route::post('/zona/update/{id}','update')->name('update');
+        Route::get('/region/edit/{code}','edit')->name('edit');
+        Route::post('/region/update/{code}','update')->name('update');
 
     });
 

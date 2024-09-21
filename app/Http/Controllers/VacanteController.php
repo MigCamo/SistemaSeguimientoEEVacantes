@@ -8,7 +8,7 @@ use App\Http\Requests\StoreExperienciaEducativaRequest;
 use App\Models\Area;
 use App\Models\Docente;
 use App\Models\HistoricoDocente;
-use App\Models\Periodo;
+use App\Models\SchoolPeriod;
 use App\Models\SearchVacante;
 use App\Models\TipoAsignacion;
 use App\Models\Vacante;
@@ -239,7 +239,7 @@ class VacanteController extends Controller
         $listaMotivos = Motivo::all();
         $listaDocentes = Docente::all();
         $listaExperienciasEducativas = ExperienciaEducativa::all();
-        $listaPeriodos = Periodo::all();
+        $listaPeriodos = SchoolPeriod::all();
         $listaTiposAsignacion = TipoAsignacion::all();
 
         $userAdmin = Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin');
@@ -483,7 +483,7 @@ class VacanteController extends Controller
         $listaMotivos = Motivo::all();
         $listaDocentes = Docente::all();
         $listaExperienciasEducativas = ExperienciaEducativa::all();
-        $listaPeriodos = Periodo::all();
+        $listaPeriodos = SchoolPeriod::all();
         $listaTiposAsignacion = TipoAsignacion::all();
 
         $zonas = Zona::all();
