@@ -19,55 +19,13 @@
 
                     @if ( Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin') )
 
-                        <div class="hidden sm:flex sm:items-center sm:ml-l">
-                            <x-jet-dropdown align="right" width="48">
-                                <x-slot name="trigger">
-                                    <span class="inline-flex rounded-md">
-                                        <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition">
-                                            E.E Vacantes
-                                            <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </span>
-                                </x-slot>
-                                <x-slot name="content">
-                                    <x-jet-dropdown-link href="{{ route('vacante.import') }}" title="Carga de la base de datos">
-                                        {{ __('Cargar CSV Vacantes') }}
-                                    </x-jet-dropdown-link>
-                                    <x-jet-dropdown-link href="{{ route('vacante.index') }}" title="Gestión de las Experiencias Educativas Vacantes">
-                                        {{ __('E.E. Vacantes') }}
-                                    </x-jet-dropdown-link>
-                                </x-slot>
-                            </x-jet-dropdown>
-                        </div>
+                        <x-jet-nav-link href="{{ route('vacante.index') }}" :active="request()->routeIs('vacante.index')" title="Gestión de las Experiencias Educativas Vacantes">
+                            {{ __('Vacantes') }}
+                        </x-jet-nav-link>
 
                         <x-jet-nav-link href="{{ route('experienciaEducativa.index') }}" :active="request()->routeIs('experienciaEducativa.index')" title="Gestión de Experiencias Educativas">
                             {{ __('E.E') }}
                         </x-jet-nav-link>
-
-                        <div class="hidden sm:flex sm:items-center sm:ml-l">
-                            <x-jet-dropdown align="right" width="48">
-                                <x-slot name="trigger">
-                                    <span class="inline-flex rounded-md">
-                                        <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition">
-                                            Plan de estudios
-                                            <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </span>
-                                </x-slot>
-                                <x-slot name="content">
-                                    <x-jet-dropdown-link href="{{ route('vacante.import') }}" title="Carga de la base de datos">
-                                        {{ __('Cargar CSV') }}
-                                    </x-jet-dropdown-link>
-                                    <x-jet-dropdown-link href="{{ route('vacante.index') }}" title="Gestión de las Experiencias Educativas Vacantes">
-                                        {{ __('Planes de estudio') }}
-                                    </x-jet-dropdown-link>
-                                </x-slot>
-                            </x-jet-dropdown>
-                        </div>
 
                         <x-jet-nav-link href="{{ route('zonaDependencia.index') }}" :active="request()->routeIs('zonaDependencia.index')" title="Gestión de las Dependencias">
                             {{ __('Dependencias') }}

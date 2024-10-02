@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CurriculumController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TipoAsignacionController;
 use App\Http\Controllers\ReasonController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\LecturerController;
 use App\Http\Controllers\ExperienciaEducativaController;
 use App\Http\Controllers\LogUserActivityController;
 use App\Http\Controllers\SchoolPeriodController;
+use App\Http\Controllers\CurriculumDetailsController;
 use App\Models\Region;
 
 /*
@@ -235,4 +237,33 @@ Route::controller(ZonaDependenciaController::class)->group(function (){
 
     });
 
+});
+
+Route::controller(CurriculumController::class)->group(function (){
+
+    Route::name('curriculum.')->group(function (){
+
+        Route::get('/curriculum',  'index') ->name('index');
+        Route::get('/curriculum/create',  'create')->name('create');
+        Route::post('/curriculum',  'store')->name('store');
+        Route::delete('/curriculum/destroy/{code}',  'destroy')->name('destroy');
+        Route::get('/curriculum/edit/{code}','edit')->name('edit');
+        Route::post('/curriculum/update/{code}','update')->name('update');
+        Route::post('/curriculum/updateStatus/{code}','updateStatus')->name('updateStatus');
+        Route::get('/curriculum/details/{code}','goToCurriculumDetailsWindow')->name('goToCurriculumDetailsWindow');
+    });
+});
+
+Route::controller(CurriculumDetailsController::class)->group(function (){
+
+    Route::name('curriculumDetails.')->group(function (){
+
+        Route::get('/curriculumDetails',  'index') ->name('index');
+        Route::get('/curriculumDetails/create',  'create')->name('create');
+        Route::post('/curriculumDetails',  'store')->name('store');
+        Route::delete('/curriculumDetails/destroy/{code}',  'destroy')->name('destroy');
+        Route::get('/curriculumDetails/edit/{code}','edit')->name('edit');
+        Route::post('/curriculumDetails/update/{code}','update')->name('update');
+        Route::post('/csv/upload', [CurriculumController::class, 'uploadCSV'])->name('csv.upload');
+    });
 });
