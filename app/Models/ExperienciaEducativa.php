@@ -12,10 +12,9 @@ class ExperienciaEducativa extends Model
     //protected $primaryKey = 'nrc';
 
     protected $fillable = [
-        'codMateria',
-        'nrc',
-        'nombre',
-        'horas',
+        'code', 
+        'name', 
+        'hours'
     ];
 
     protected $guarded = [];
