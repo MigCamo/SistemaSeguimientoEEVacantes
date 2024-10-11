@@ -27,7 +27,7 @@ class ExperienciaEducativaController extends Controller
 
         // Ajuste en el nombre de la tabla y los campos
         $experienciasEducativas = DB::table('educational_experiences')
-            ->select('id', 'code', 'name', 'hours') // Cambiados los nombres de los campos
+            ->select('code', 'name', 'hours') // Cambiados los nombres de los campos
             ->where('code', 'LIKE', '%'.$search.'%')
             ->orWhere('name', 'LIKE', '%'.$search.'%')
             ->orWhere('hours', 'LIKE', '%'.$search.'%')
@@ -39,7 +39,7 @@ class ExperienciaEducativaController extends Controller
             switch ($radioButton) {
                 case "code":
                     $experienciasEducativas = DB::table('educational_experiences')
-                        ->select('id', 'code', 'name', 'hours')
+                        ->select('code', 'name', 'hours')
                         ->where('code', 'LIKE', '%'.$search.'%')
                         ->orderBy('code', 'asc')
                         ->paginate(10)
@@ -48,7 +48,7 @@ class ExperienciaEducativaController extends Controller
 
                 case "name":
                     $experienciasEducativas = DB::table('educational_experiences')
-                        ->select('id', 'code', 'name', 'hours')
+                        ->select('code', 'name', 'hours')
                         ->where('name', 'LIKE', '%'.$search.'%')
                         ->orderBy('name', 'asc')
                         ->paginate(10)
@@ -57,7 +57,7 @@ class ExperienciaEducativaController extends Controller
 
                 case "hours":
                     $experienciasEducativas = DB::table('educational_experiences')
-                        ->select('id', 'code', 'name', 'hours')
+                        ->select('code', 'name', 'hours')
                         ->where('hours', 'LIKE', '%'.$search.'%')
                         ->orderBy('hours', 'asc')
                         ->paginate(10)
@@ -66,7 +66,7 @@ class ExperienciaEducativaController extends Controller
 
                 default:
                     $experienciasEducativas = DB::table('educational_experiences')
-                        ->select('id', 'code', 'name', 'hours')
+                        ->select('code', 'name', 'hours')
                         ->where('code', 'LIKE', '%'.$search.'%')
                         ->orWhere('name', 'LIKE', '%'.$search.'%')
                         ->orWhere('hours', 'LIKE', '%'.$search.'%')
