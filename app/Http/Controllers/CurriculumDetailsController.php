@@ -64,12 +64,13 @@ class CurriculumDetailsController extends Controller
                 foreach ($rows as $row) {
                     if (count($row) == count($header)) {
                         $data = array_combine($header, $row);
-                        $curriculum_code = $data['FWTEQEF_PROG_CODE'];
-                        $ee_code = $data['MATCUR'];
+                        $curriculum_code = $request->curriculum_code;
+                        $ee_code = $data['MATCUR'] ?? null;
 
                         $educationalExperience = EducationalExperience::firstOrCreate(
                             ['code' => $ee_code],
-                            ['name' => $data['TEXG'], 'hours' => $data['HRS']]
+                            ['name' => $data['TEXG'] ?? null,
+                            'hours' => $data['HRS'] ?? null]
                         );
 
                         $relationExists = Curriculum_Educational_Experiences::where('curriculum_code', $curriculum_code)
@@ -84,9 +85,10 @@ class CurriculumDetailsController extends Controller
                 return redirect()->back()->with('status', 'success');
             }
         } catch (\Exception $e) {
-            return redirect()->back()->with('status', 'error');
+            return redirect()->back()->with('status', 'error')->with('error_message', $e->getMessage());
         }
     }
+
 
 
 }

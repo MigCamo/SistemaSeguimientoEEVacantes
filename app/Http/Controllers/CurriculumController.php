@@ -16,13 +16,23 @@ class CurriculumController extends Controller
 {
     public function index(Request $request)
     {
+
         $search = trim($request->get('search'));
         $radioButton = $request->get('tipo', 'code');
+
         $validColumns = ['code', 'year'];
         $orderColumn = in_array($radioButton, $validColumns) ? $radioButton : 'code';
 
+        $programCode = $request->get('programCode');
+        $program = DB::table('educational_programs')->where('program_code', $programCode)->first();
+
+        if (!$program) {
+            return redirect()->back()->with('error', 'El programa no existe');
+        }
+
         $curriculumList = DB::table('curriculums')
             ->select('code', 'year', 'active', 'numberPeriods', 'minimumCredits', 'type')
+            ->where('educational_programs_code', $programCode)
             ->where(function ($query) use ($search) {
                 $query->where('code', 'LIKE', '%' . $search . '%')
                     ->orWhere('year', 'LIKE', '%' . $search . '%')
@@ -32,14 +42,16 @@ class CurriculumController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('curriculum.index', compact('curriculumList', 'search'));
+        return view('curriculum.index', compact('curriculumList', 'search', 'program'));
     }
+
+
     public function store(StoreCurriculumRequest $request)
     {
         $curriculum = new Curriculum();
         $curriculum->code = $request->code;
         $curriculum->year = $request->year;
-        $curriculum->educational_programs_code = 12232;//$request->educational_programs_code;
+        $curriculum->educational_programs_code = $request->educational_programs_code;
         $curriculum->active = 0;
         $curriculum->numberPeriods = $request->numberPeriods;
         $curriculum->minimumCredits = $request->minimumCredits;

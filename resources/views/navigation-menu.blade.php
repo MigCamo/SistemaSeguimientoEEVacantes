@@ -31,7 +31,7 @@
                             {{ __('Dependencias') }}
                         </x-jet-nav-link>
 
-                        <x-jet-nav-link href="{{ route('zonaDependenciaPrograma.index') }}" :active="request()->routeIs('zonaDependenciaPrograma.index')" title="Gestión de los Programas Educativos">
+                        <x-jet-nav-link href="{{ route('educationalPrograms.index') }}" :active="request()->routeIs('educationalPrograms.index')" title="Gestión de los Programas Educativos">
                             {{ __('Programas Educ.') }}
                         </x-jet-nav-link>
 
@@ -166,8 +166,8 @@
                             <!-- Account Management -->
                             <div class="block px-4 py-2 text-xs text-gray-400">
                                 {{ __('Administrar cuenta') }}
-                                <p><span class="font-bold"> {{$nombreDependencia = DB::table('zona__dependencias')->select('nombre_dependencia')->where('clave_dependencia','=',Auth::user()->dependencia)->value('nombre_dependencia');}} </span> </p>
-                                <p><span class="font-bold"> {{$nombreZona = DB::table('zonas')->where('id','=',Auth::user()->zona)->value('nombre')}} </span> </p>
+                                <p><span class="font-bold"> {{$nombreDependencia = DB::table('departaments')->select('name')->where('code','=',Auth::user()->dependencia)->value('name');}} </span> </p>
+                                <p><span class="font-bold"> {{$nombreZona = DB::table('regions')->where('code','=',Auth::user()->zona)->value('name')}} </span> </p>
                             </div>
 
                             <x-jet-dropdown-link href="{{ route('profile.show') }}">

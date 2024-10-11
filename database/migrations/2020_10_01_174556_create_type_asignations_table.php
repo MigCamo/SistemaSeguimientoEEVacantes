@@ -13,12 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('regions', function (Blueprint $table) {
-            $table->string('code')->primary();
-            $table->string('name');
+        Schema::create('type_asignations', function (Blueprint $table) {
+            $table->id();
+            $table->string('type_asignation');
+            $table->text('description') ;
             $table->timestamps();
         });
     }
+
+
 
     /**
      * Reverse the migrations.
@@ -27,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('regions');
+        Schema::dropIfExists('type_asignations');
     }
 };

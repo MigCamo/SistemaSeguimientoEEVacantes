@@ -5,13 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Curriculum_Educational_Experiences extends Model
+class Departament extends Model
 {
     use HasFactory;
-    protected $table = 'curriculum_educational_experiences';
+    protected $primaryKey = 'code';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
-        'ee_code',
-        'curriculum_code',
+        'code',
+        'name',
     ];
 
     protected $guarded = [];

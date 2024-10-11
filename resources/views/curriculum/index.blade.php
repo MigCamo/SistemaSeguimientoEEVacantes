@@ -21,7 +21,7 @@
 
     <div class="flex sm:rounded-lg md:mt-5 md:mx-10 md:my-0">
         <div class="w-3/4">
-            <p class="text-2xl font-bold">Planes de estudio del programa educativo: GEOG-24-E-CR GEOGRAFIA</p>
+            <p class="text-2xl font-bold">Planes de estudio del programa educativo: {{ $program->program_code}} {{   $program->name }} </p>
         </div>
         <div class="w-1/4 flex flex-col items-end">
             <button id="openModalButton" class="text-white bg-azul-royal hover:bg-azul-royal-hover focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
@@ -50,6 +50,9 @@
                         <div class="mb-4">
                             <label for="year" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Año</label>
                             <input type="number" id="year" name="year" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Ingresa el año" required>
+                        </div>
+                        <div class="mb-2">
+                            <input type="hidden" id="educational_programs_code" name="educational_programs_code" value="{{ $program->program_code }}">
                         </div>
                         <div class="mb-4">
                             <label for="numberPeriods" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Numero de periodos</label>

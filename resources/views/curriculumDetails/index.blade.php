@@ -79,15 +79,21 @@
                 </div>
 
                 <div class="p-6 space-y-6">
-                    <form id="csvForm" action="{{ route('curriculum.uploadCsv') }}" method="POST" enctype="multipart/form-data">
+
+                    @if(session('error_message'))
+                        <div class="alert alert-danger">
+                            {{ session('error_message') }}
+                        </div>
+                    @endif
+
+                    <form id="csvForm" action="{{ route('curriculumDetails.uploadCsv') }}" method="POST" enctype="multipart/form-data">
                         @csrf
-                        <h2>Suba su archivo .csv</h2>
                         <label>Máximo 20 MB por archivo</label>
                         <input type="file" name="csv_file" required>
+                        <input type="hidden" name="curriculum_code" value="{{ $curriculum->code }}">
                         <button type="submit" class="btn btn-primary">Cargar CSV</button>
                     </form>
 
-                    <!-- Alerta de Cargando con spinner -->
                     <div id="loadingAlert" style="display: none;">
                         <div class="alert alert-info">
                             <strong>Cargando archivo...</strong>
@@ -97,7 +103,6 @@
                         </div>
                     </div>
 
-                    <!-- Alerta de éxito o error -->
                     <div id="resultAlert" style="display: none;">
                         <div class="alert alert-success" id="successMessage" style="display: none;">
                             <strong>¡Archivo procesado correctamente!</strong>
@@ -109,7 +114,7 @@
                 </div>
 
                 <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600">
-                    <button type="submit" form="uploadCsvForm" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <button type="submit" form="csvForm" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                         Subir archivo
                     </button>
                     <button id="cancelCsvUploadButton" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">
@@ -226,7 +231,6 @@
         document.getElementById('addEducationExperienceModal').classList.add('hidden');
     });
 
-    // Cerrar el modal con el botón de cancelar
     document.getElementById('cancelButton').addEventListener('click', function() {
         document.getElementById('addEducationExperienceModal').classList.add('hidden');
     });
@@ -240,8 +244,6 @@
         document.getElementById('year').value = curriculum.year;
         document.getElementById('active').checked = curriculum.active;
     }
-
-    //---------------------------------------
 
     document.getElementById('uploadCsvButton').addEventListener('click', function() {
         document.getElementById('uploadCsvModal').classList.remove('hidden');
@@ -257,10 +259,9 @@
 
     document.getElementById('csvForm').addEventListener('submit', function() {
         document.getElementById('loadingAlert').style.display = 'block';
-        document.getElementById('csvForm').style.display = 'none'; // Ocultar formulario mientras carga
+        document.getElementById('csvForm').style.display = 'none';
     });
 
-    // Mostrar mensajes de éxito o error después de la redirección
     @if(session('status') == 'success')
         document.getElementById('loadingAlert').style.display = 'none';
         document.getElementById('successMessage').style.display = 'block';

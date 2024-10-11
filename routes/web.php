@@ -7,7 +7,7 @@ use App\Http\Controllers\ReasonController;
 use App\Http\Controllers\VacanteController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\ZonaDependenciaController;
-use App\Http\Controllers\ZonaDependenciaProgramaController;
+use App\Http\Controllers\EducationalProgramsController;
 use App\Http\Controllers\LecturerController;
 use App\Http\Controllers\ExperienciaEducativaController;
 use App\Http\Controllers\LogUserActivityController;
@@ -86,7 +86,7 @@ Route::controller(VacanteController::class)->group(function (){
 
 Route::post('api/fetch-dependencias', [ZonaDependenciaController::class, 'fetchDependencia']);
 Route::post('api/fetch-horasExperienciaEducativa', [VacanteController::class, 'fetchHorasExperienciaEducativa']);
-Route::post('api/fetch-zonaDependencia', [ZonaDependenciaProgramaController::class, 'fetchZonaDependencia']);
+Route::post('api/fetch-regionDepartments', [EducationalProgramsController::class, 'fetchRegionDepartments']);
 Route::post('api/fetch-dependenciaVacante', [VacanteController::class, 'fetchDependenciaVacante']);
 Route::post('api/fetch-programaVacante', [VacanteController::class, 'fetchProgramaVacante']);
 Route::post('api/fetch-filtroNombre', [VacanteController::class, 'fetchFiltroNombre']);
@@ -205,17 +205,18 @@ Route::controller(RegionController::class)->group(function (){
 
 });
 
-Route::controller(ZonaDependenciaProgramaController::class)->group(function (){
+Route::controller(EducationalProgramsController::class)->group(function (){
 
-    Route::name('zonaDependenciaPrograma.')->group(function (){
+    Route::name('educationalPrograms.')->group(function (){
 
-        Route::get('/zonaDependenciaPrograma',  'index') ->name('index');
-        Route::get('/zonaDependenciaPrograma/create',  'create')->name('create');
-        Route::post('/zonaDependenciaPrograma',  'store')->name('store');
-        Route::delete('/zonaDependenciaPrograma/destroy/{id}',  'destroy')->name('destroy');
+        Route::get('/educationalPrograms',  'index') ->name('index');
+        Route::get('/educationalPrograms/create',  'create')->name('create');
+        Route::post('/educationalPrograms',  'store')->name('store');
+        Route::delete('/educationalPrograms/destroy/{program_code}',  'destroy')->name('destroy');
 
-        Route::get('/zonaDependenciaPrograma/edit/{id}','edit')->name('edit');
-        Route::post('/zonaDependenciaPrograma/update/{id}','update')->name('update');
+        Route::get('/educationalPrograms/edit/{program_code}','edit')->name('edit');
+        Route::post('/educationalPrograms/update/{program_code}','update')->name('update');
+        Route::get('/educationalPrograms/curriculums/{code}','viewEducationalPlans')->name('viewEducationalPlans');
 
     });
 
@@ -256,14 +257,13 @@ Route::controller(CurriculumController::class)->group(function (){
 
 Route::controller(CurriculumDetailsController::class)->group(function (){
 
-    Route::name('curriculumDetails.')->group(function (){
-
-        Route::get('/curriculumDetails',  'index') ->name('index');
+    Route::name('curriculumDetails.')->group(function () {
+        Route::get('/curriculumDetails',  'index')->name('index');
         Route::get('/curriculumDetails/create',  'create')->name('create');
         Route::post('/curriculumDetails',  'store')->name('store');
         Route::delete('/curriculumDetails/destroy/{code}',  'destroy')->name('destroy');
-        Route::get('/curriculumDetails/edit/{code}','edit')->name('edit');
-        Route::post('/curriculumDetails/update/{code}','update')->name('update');
-        Route::post('/csv/upload', [CurriculumController::class, 'uploadCSV'])->name('csv.upload');
+        Route::get('/curriculumDetails/edit/{code}', 'edit')->name('edit');
+        Route::post('/curriculumDetails/update/{code}', 'update')->name('update');
+        Route::post('/curriculumDetails/upload-csv', [CurriculumDetailsController::class, 'uploadCsv'])->name('uploadCsv');
     });
 });
