@@ -102,8 +102,6 @@ class RegionController extends Controller
      */
     public function destroy($code)
     {
-        //$zonaEliminarPrograma = DB::table('zona__dependencia__programas')->where("id_zona",$id)->delete();
-        //$zonaEliminarDependencia = DB::table('zona__dependencias')->where('id_zona',$id)->delete();
         $region = Region::where('code',$code)->firstOrFail();
         $region->delete($code);
 
