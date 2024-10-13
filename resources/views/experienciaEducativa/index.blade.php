@@ -39,22 +39,29 @@
 
                     <li>
                         <div class="flex items-center">
-                            <input id="code" type="radio" value="code" name="tipo" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                            <label for="code" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Número de Materia</label>
+                            <input id="codMateria" type="radio" value="codMateria" name="tipo" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                            <label for="codMateria" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Número de Materia</label>
                         </div>
                     </li>
 
                     <li>
                         <div class="flex items-center">
-                            <input id="name" type="radio" value="name" name="tipo" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                            <label for="name" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">name</label>
+                            <input id="nrc" type="radio" value="nrc" name="tipo" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                            <label for="nrc" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">NRC</label>
                         </div>
                     </li>
 
                     <li>
                         <div class="flex items-center">
-                            <input id="hours" type="radio" value="hours" name="tipo" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                            <label for="hours" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">hours</label>
+                            <input id="nombre" type="radio" value="nombre" name="tipo" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                            <label for="nombre" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Nombre</label>
+                        </div>
+                    </li>
+
+                    <li>
+                        <div class="flex items-center">
+                            <input id="horas" type="radio" value="horas" name="tipo" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
+                            <label for="horas" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Horas</label>
                         </div>
                     </li>
 
@@ -80,10 +87,13 @@
                     Código Materia
                 </th>
                 <th scope="col" class="py-3 px-6">
-                    name
+                    NRC
                 </th>
                 <th scope="col" class="py-3 px-6">
-                    hours
+                    Nombre
+                </th>
+                <th scope="col" class="py-3 px-6">
+                    Horas
                 </th>
                 <th scope="col" class="py-3 px-6">
                     <span class="sr-only">Editar</span>
@@ -106,25 +116,29 @@
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
 
                         <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{$experienciaEducativa->code}}
+                            {{$experienciaEducativa->codMateria}}
+                        </th>
+
+                        <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{$experienciaEducativa->nrc}}
                         </th>
 
                         <td class="py-4 px-6">
-                            {{$experienciaEducativa->name}}
+                            {{$experienciaEducativa->nombre}}
                         </td>
 
                         <td class="py-4 px-6">
-                            {{$experienciaEducativa->hours}}
+                            {{$experienciaEducativa->horas}}
                         </td>
 
                         <td class="py-4 px-6 text-right">
-                            <a href="{{route('experienciaEducativa.edit',$experienciaEducativa->code)}}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Editar</a>
+                            <a href="{{route('experienciaEducativa.edit',$experienciaEducativa->id)}}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Editar</a>
                         </td>
 
                         <td class="py-4 px-6 text-right">
                             <button type="button"
                                     class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-                                    data-modal-toggle="delete-modal{{$experienciaEducativa->code}}">Eliminar</button>
+                                    data-modal-toggle="delete-modal{{$experienciaEducativa->id}}">Eliminar</button>
                         </td>
 
                     </tr>

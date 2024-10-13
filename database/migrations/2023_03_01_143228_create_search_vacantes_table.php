@@ -13,9 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('regions', function (Blueprint $table) {
-            $table->integer('code')->primary();
-            $table->string('name');
+        Schema::create('search_vacantes', function (Blueprint $table) {
+            $table->id();
+            $table->integer('id_user');
+            $table->integer('id_zona');
+            $table->integer('clave_dependencia');
+            $table->integer('clave_programa');
+            $table->string('filtro');
+            $table->string('busqueda')->nullable();
             $table->timestamps();
         });
     }
@@ -27,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('regions');
+        Schema::dropIfExists('search_vacantes');
     }
 };

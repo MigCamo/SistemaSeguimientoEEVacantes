@@ -17,14 +17,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+         //\App\Models\User::factory(10)->withPersonalTeam()->create();
+         //User::factory(10)->create();
+         //Team::factory(10)->create();
+         //Docente::factory(count: 10)->create();
+/*         \App\Models\User::factory()->create([
+             'name' => 'Test User',
+            'email' => 'test@example.com',
+         ]);*/
+
         $this->call([
-            RegionSeeder::class,
-            ReasonSeeder::class,
-            SchoolPeriodSeeder::class,
-            TypeAsignationSeeder::class,
-            DepartamentSeeder::class,
-            EducationalExperienceSeeder::class,
-            EducationalProgramSeeder::class,
+            MotivoSeeder::class,
+            ZonaSeeder::class,
+            ZonaDependenciaSeeder::class,
+            PeriodoSeeder::class,
         ]);
 
     }
