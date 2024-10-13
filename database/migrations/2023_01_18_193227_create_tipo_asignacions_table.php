@@ -13,9 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('regions', function (Blueprint $table) {
-            $table->integer('code')->primary();
-            $table->string('name');
+        Schema::create('tipo_asignacions', function (Blueprint $table) {
+            $table->id();
+            $table->string('tipo')->unique();
+            $table->text('descripcion')->nullable();
             $table->timestamps();
         });
     }
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('regions');
+        Schema::dropIfExists('tipo_asignacions');
     }
 };
