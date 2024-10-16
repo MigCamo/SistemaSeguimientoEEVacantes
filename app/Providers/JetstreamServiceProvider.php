@@ -16,6 +16,7 @@ use Laravel\Jetstream\Jetstream;
 use App\Models\Zona;
 use App\Models\Zona_Dependencia;
 use App\Http\Controllers\ZonaDependenciaController;
+use App\Models\Region;
 
 class JetstreamServiceProvider extends ServiceProvider
 {
@@ -47,8 +48,7 @@ class JetstreamServiceProvider extends ServiceProvider
         Jetstream::deleteUsersUsing(DeleteUser::class);
 
         Fortify::registerView(function () {
-            $data['zonas'] = Zona::get(["id", "nombre"]);
-            //$a[] = "hola";
+            $data['regionList'] = Region::get(["code", "name"]);
             return view('auth.register', $data);
         });
 

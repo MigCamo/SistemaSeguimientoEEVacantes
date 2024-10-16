@@ -25,8 +25,8 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'dependencia' => ['required','integer'],
-            'zona' => ['required','integer'],
+            //'dependencia' => ['required','string'],
+            //'zona' => ['required','string'],
             'password' => $this->passwordRules(),
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
         ])->validate();
@@ -36,12 +36,10 @@ class CreateNewUser implements CreatesNewUsers
                 'name' => $input['name'],
                 'email' => $input['email'],
                 'password' => Hash::make($input['password']),
-                'dependencia'=> $input['dependencia'],
-                'zona'=> $input['zona'],
+                'dependencia'=> $input['departament'],
+                'zona'=> $input['region'],
             ])
             , function (User $user) {
-                //Se desabilita la función de que al crear una nueva cuenta esta se cree su equipo personal
-                //$this->createTeam($user);
             }
             );
         });

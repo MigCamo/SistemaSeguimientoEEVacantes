@@ -86,7 +86,7 @@
         <!-- Dependencia -->
         <div class="col-span-6 sm:col-span-4 py-3">
             <x-jet-label for="name" value="{{ __('Dependencia') }}" />
-            <x-jet-input id="name" type="text" class="mt-1 block w-full" value="{{$nombreDependencia = DB::table('zona__dependencias')->select('nombre_dependencia')->where('clave_dependencia','=',Auth::user()->dependencia)->value('nombre_dependencia');}}" readonly/>
+            <x-jet-input id="name" type="text" class="mt-1 block w-full" value="{{$nombreDependencia = DB::table('departaments')->select('name')->where('code','=',Auth::user()->dependencia)->value('name');}}" readonly/>
         </div>
 
         <!-- Número de zona -->
@@ -98,7 +98,7 @@
         <!-- Zona -->
         <div class="col-span-6 sm:col-span-4 py-3">
             <x-jet-label for="name" value="{{ __('Zona') }}" />
-            <x-jet-input id="name" type="text" class="mt-1 block w-full" value="{{$nombreZona = DB::table('zonas')->select('nombre')->where('id','=',Auth::user()->zona)->value('nombre');}}" readonly/>
+            <x-jet-input id="name" type="text" class="mt-1 block w-full" value="{{$nombreZona = DB::table('regions')->select('name')->where('code','=',Auth::user()->zona)->value('nombre');}}" readonly/>
         </div>
 
             @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::emailVerification()) && ! $this->user->hasVerifiedEmail())
