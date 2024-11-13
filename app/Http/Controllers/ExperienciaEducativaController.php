@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\EducationalExperience; // Cambiado para usar el nuevo modelo
 use App\Http\Requests\StoreExperienciaEducativaRequest;
+use App\Http\Requests\UpdateEducationalExperienceRequest;
 use App\Http\Requests\UpdateExperienciaEducativaRequest;
-use App\Models\ExperienciaEducativa;
 use App\Providers\LogUserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -98,7 +98,7 @@ class ExperienciaEducativaController extends Controller
     public function store(StoreExperienciaEducativaRequest $request)
     {
         // Creación de la nueva experiencia educativa usando los nuevos nombres de campos
-        $ee = new ExperienciaEducativa();
+        $ee = new EducationalExperience();
         $ee->code = $request->code;
         $ee->name = $request->name;
         $ee->hours = $request->hours;
@@ -119,7 +119,7 @@ class ExperienciaEducativaController extends Controller
      */
     public function edit($id)
     {
-        $experienciaEducativa = ExperienciaEducativa::findOrFail($id);
+        $experienciaEducativa = EducationalExperience::findOrFail($id);
         return view('experienciaEducativa.edit', compact('experienciaEducativa'));
     }
 
@@ -130,9 +130,9 @@ class ExperienciaEducativaController extends Controller
      * @param  \App\Models\EducationalExperience  $experienciaEducativa
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateExperienciaEducativaRequest $request, $id)
+    public function update(UpdateEducationalExperienceRequest $request, $id)
     {
-        $experienciaEducativa = ExperienciaEducativa::findOrFail($id);
+        $experienciaEducativa = EducationalExperience::findOrFail($id);
 
         $experienciaEducativa->update([
             'code' => $request->code,
@@ -155,7 +155,7 @@ class ExperienciaEducativaController extends Controller
      */
     public function destroy($id)
     {
-        $ee = ExperienciaEducativa::findOrFail($id);
+        $ee = EducationalExperience::findOrFail($id);
         $ee->delete();
 
         $user = Auth::user();

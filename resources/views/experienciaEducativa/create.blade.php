@@ -56,8 +56,8 @@
                                 @csrf
 
                                 <div class="col-span-6">
-                                    <label for="codMateria" class="labelForms">Código de Materia</label>
-                                    <input type="text" name="codMateria" value="{{ old('codMateria') }}" id="codMateria" class="inputForms"
+                                    <label for="code" class="labelForms">Código de Materia</label>
+                                    <input type="text" name="code" value="{{ old('code') }}" id="code   " class="inputForms"
                                            placeholder="Ej. 15123" required>
                                 </div>
 
