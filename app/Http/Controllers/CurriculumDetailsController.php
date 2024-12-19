@@ -88,7 +88,4 @@ class CurriculumDetailsController extends Controller
             return redirect()->back()->with('status', 'error')->with('error_message', $e->getMessage());
         }
     }
-
-
-
 }
