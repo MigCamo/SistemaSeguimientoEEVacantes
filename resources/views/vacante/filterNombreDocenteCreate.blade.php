@@ -31,17 +31,7 @@
     </select>
 </div>
 
-<div class="col-span-6 sm:col-span-2 lg:col-span-2">
-    <label for="numPersonalDocente" class="block mb-0 text-sm font-medium text-gray-900 dark:text-gray-400">Docente</label>
-    <select  id="numPersonalDocente-dropdowm" name="numPersonalDocente" class="estiloSelect">
-        <option value="">Selecciona al docente</option>
-        @foreach ($docentes as $data)
-            <option value="{{$data->nombre}} {{$data->apellidoPaterno}} {{$data->apellidoMaterno}}-{{$data->nPersonal}}">
-                {{$data->nombre}} {{$data->apellidoPaterno}} {{$data->apellidoMaterno}}-{{$data->nPersonal}}
-            </option>
-        @endforeach
-    </select>
-</div>
+
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>

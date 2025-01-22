@@ -25,12 +25,15 @@ class DatabaseSeeder extends Seeder
             DepartamentSeeder::class,
             EducationalExperienceSeeder::class,
             EducationalProgramSeeder::class,
-        ]);*/
+        ]);
 
         \App\Models\User::factory()->create([
             'name' => 'Fernando Elotlan',
             'email' => 'ferelomor@gmail.com',
             'password' => bcrypt('Unshowmas13-'), // Asegúrate de encriptar la contraseña
+        ]);*/
+        $this->call([
+            TeamSeeder::class,
         ]);
     }
 }
