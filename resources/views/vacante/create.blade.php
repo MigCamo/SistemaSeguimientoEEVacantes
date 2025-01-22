@@ -33,7 +33,7 @@
                         <p class="mt-1 text-sm text-gray-600">Por favor ingresa los datos solicitados.</p><br>
                         <p><b>Recuerda que los datos obligatiorios son:</b></p>
                         <li>Periodo</li>
-                        <li>Zona</li>
+                        <li>Region</li>
                         <li>Dependencia</li>
                         <li>Programa educativo</li>
                         <li>Experiencia Educativa</li>
@@ -300,5 +300,8 @@
 
     </div>
 
+    
 </body>
 </html>
+
+

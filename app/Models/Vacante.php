@@ -2,69 +2,51 @@
 
 namespace App\Models;
 
-use App\Jobs\ProcessCSVUploadVacamte;
-use App\Jobs\ProcessCSVUploadVacante;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-/*
- * Atributos que pueden asignarse
- *
- * @link https://laravel.com/docs/9.x/eloquent#mass-assignment
- */
-class Vacante extends Model{
-
+class Vacante extends Model
+{
     use HasFactory;
-    use SoftDeletes;
 
+    // La clave primaria y su tipo de dato, ya que no es 'id'
+    protected $primaryKey = 'nrc';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    // Atributos que se pueden asignar de manera masiva
     protected $fillable = [
-        'id',
-        'periodo',
-        'clavePeriodo',
-        'numZona',
-        'numDependencia',
-        'numArea',
-        'numPrograma',
-        'numPlaza',
-        'numHoras',
-        'numMateria',
-        'nombreMateria',
-        'grupo',
-        'subGrupo',
-        'numMotivo',
-        'tipoContratacion',
-        'tipoAsignacion',
-        'numPersonalDocente',
-        'nombreDocente',
-        'plan',
-        'observaciones',
-        'fechaAviso',
-        'fechaAsignacion',
-        'fechaApertura',
-        'fechaCierre',
-        'fechaRenuncia',
-        'archivo',
+        'nrc',
+        'school_period_code',
+        'region_code',
+        'departament_code',
+        'area_code',
+        'educational_experience_code',
+        'class',
+        'subGroup',
     ];
 
-    protected $guarded = [];
-
-    /**
-     * Función para cargar el archivo CSV
-     *
-     * @link https://youtu.be/ap7A1uav-tc
-     * @return void
-     */
-    public function importToDB(){
-        $path = resource_path('pending-files/*.csv');
-        $files = glob($path);
-        foreach ($files as $file){
-
-            ProcessCSVUploadVacante::dispatch($file);
-
-        }
-
+    // Relaciones con otros modelos
+    public function schoolPeriod()
+    {
+        return $this->belongsTo(SchoolPeriod::class, 'school_period_code', 'code');
     }
 
+    public function region()
+    {
+        return $this->belongsTo(Region::class, 'region_code', 'code');
+    }
 
+    public function departament()
+    {
+        return $this->belongsTo(Departament::class, 'departament_code', 'code');
+    }
+
+    public function educationalExperience()
+    {
+        return $this->belongsTo(EducationalExperience::class, 'educational_experience_code', 'code');
+    }
+
+    // Puedes añadir otras relaciones, scopes o métodos específicos si los necesitas
 }
+

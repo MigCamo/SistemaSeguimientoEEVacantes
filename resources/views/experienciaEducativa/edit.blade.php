@@ -2,8 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Actualizar Experiencia Educativa</title>
     <!-- Fonts -->
@@ -49,28 +48,28 @@
                     @endforeach
                 @endif
 
-                <form action="{{ route('experienciaEducativa.update',$experienciaEducativa->id) }}" method="POST">
+                <form action="{{ route('experienciaEducativa.update', $experienciaEducativa->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
                     <div class="overflow-hidden shadow sm:rounded-md">
                         <div class="bg-white px-4 py-5 sm:p-6">
                             <div class="grid grid-cols-6 gap-6">
-                                @csrf
-
                                 <div class="col-span-6">
-                                    <label for="codMateria" class="labelForms">Código de Materia</label>
-                                    <input type="text" name="codMateria" id="codMateria" class="inputForms"
-                                           required value="{{old('codMateria',$experienciaEducativa->codMateria)}}">
+                                    <label for="code" class="labelForms">Código de Materia</label>
+                                    <input type="text" name="code" id="code" class="inputForms"
+                                           required value="{{ old('code', $experienciaEducativa->code) }}">
                                 </div>
 
                                 <div class="col-span-6">
-                                    <label for="nombre" class="labelForms">Nombre de la Experiencia Educativa</label>
-                                    <input type="text" name="nombre" id="nombre" class="inputForms"
-                                           value="{{old('nombre',$experienciaEducativa->nombre)}}" required>
+                                    <label for="name" class="labelForms">Nombre de la Experiencia Educativa</label>
+                                    <input type="text" name="name" id="name" class="inputForms"
+                                           value="{{ old('name', $experienciaEducativa->name) }}" required>
                                 </div>
 
                                 <div class="col-span-6">
-                                    <label for="horas" class="labelForms">Horas</label>
-                                    <input type="number" name="horas" id="horas" class="inputForms"
-                                           value="{{old('horas',$experienciaEducativa->horas)}}" required>
+                                    <label for="hours" class="labelForms">Horas</label>
+                                    <input type="number" name="hours" id="hours" class="inputForms"
+                                           value="{{ old('hours', $experienciaEducativa->hours) }}" required>
                                 </div>
                             </div>
                         </div>
@@ -80,7 +79,6 @@
                     </div>
                 </form>
             </div>
-
         </div>
     </div>
 </div>
