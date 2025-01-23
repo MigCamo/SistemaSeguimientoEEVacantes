@@ -88,11 +88,12 @@
                                     <div class="col-span-6 sm:col-span-3 lg:col-span-3" >
                                         <label for="periodo" class="block text-sm font-medium text-gray-900 dark:text-gray-400">Periodo</label>
                                         <select  id="periodo" name="periodo" class="estiloSelect" required>
-                                            <option value="">Selecciona el periodo</option>
+                                        <option value="">Selecciona el periodo</option>
                                             @foreach ($periodos as $data)
-                                                <option value="{{$data->nPeriodo}}-{{$data->clavePeriodo}}">
-                                                    {{$data->nPeriodo}}-{{$data->clavePeriodo}}-{{$data->descripcion}}
-                                                </option>
+                                                @if(session('data'))
+                                                    @php $data = session('data'); @endphp
+                                                    <option value="{{$data->nPeriodo}}-{{$data->clavePeriodo}}"></option>
+                                                @endif
                                             @endforeach
                                         </select>
                                     </div>
@@ -131,9 +132,10 @@
                                         <select  id="numMotivo" name="numMotivo" class="estiloSelect" required>
                                             <option value="">Selecciona el motivo</option>
                                             @foreach ($motivos as $data)
-                                                <option value="{{$data->numeroMotivo}}">
-                                                    {{$data->numeroMotivo}} {{$data->nombre}}
-                                                </option>
+                                                @if(session('data'))
+                                                    @php $data = session('data'); @endphp
+                                                    <option value="{{$data->numeroMotivo}}-{{$data->nombre}}"></option>
+                                                @endif
                                             @endforeach
                                         </select>
                                     </div>
@@ -154,9 +156,10 @@
                                         <select  id="tipoAsignacion" name="tipoAsignacion" class="estiloSelect">
                                             <option value="">Selecciona el tipo de asignación</option>
                                             @foreach ($tiposAsignacion as $data)
-                                                <option value="{{$data->tipo}}">
-                                                    {{$data->tipo}}
-                                                </option>
+                                                @if(session('data'))
+                                                    @php $data = session('data'); @endphp
+                                                    <option value="{{$data->tipo}}-{{$data->tipo}}"></option>
+                                                @endif
                                             @endforeach
                                         </select>
                                     </div>
