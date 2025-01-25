@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use App\Models\Educational_Experience_Vacancies;
+use App\Models\EducationalProgram;
 use App\Models\User;
 use App\Models\Vacante;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -28,7 +30,7 @@ class VacantePolicy
      * @param  \App\Models\Vacante  $vacante
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function view(User $user, Vacante $vacante)
+    public function view(User $user, Educational_Experience_Vacancies $vacante)
     {
         //
     }
@@ -51,7 +53,7 @@ class VacantePolicy
      * @param  \App\Models\Vacante  $vacante
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function update(User $user, Vacante $vacante)
+    public function update(User $user, Educational_Experience_Vacancies $vacante)
     {
         //
     }
@@ -63,7 +65,7 @@ class VacantePolicy
      * @param  \App\Models\Vacante  $vacante
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function delete(User $user, Vacante $vacante)
+    public function delete(User $user, Educational_Experience_Vacancies $vacante)
     {
         //
     }
@@ -75,7 +77,7 @@ class VacantePolicy
      * @param  \App\Models\Vacante  $vacante
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function restore(User $user, Vacante $vacante)
+    public function restore(User $user, Educational_Experience_Vacancies $vacante)
     {
         //
     }
@@ -87,7 +89,7 @@ class VacantePolicy
      * @param  \App\Models\Vacante  $vacante
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function forceDelete(User $user, Vacante $vacante)
+    public function forceDelete(User $user, Educational_Experience_Vacancies $vacante)
     {
         //
     }

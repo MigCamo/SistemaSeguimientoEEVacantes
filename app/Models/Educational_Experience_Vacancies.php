@@ -5,8 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Vacante extends Model
+class Educational_Experience_Vacancies extends Model
 {
+    protected $table = 'educational_experience_vacancies'; // Nombre exacto de la tabla
     use HasFactory;
 
     // La clave primaria y su tipo de dato, ya que no es 'id'
