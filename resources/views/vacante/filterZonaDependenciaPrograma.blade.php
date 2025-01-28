@@ -19,11 +19,11 @@
         <div class="w-1/4 ml-8">
             <label for="dependencia-dropdown" class="block mb-2 text-sm  text-gray-900 dark:text-gray-400" >Dependencia</label>
             <select id="dependencia-dropdown" class="estiloSelect" name="dependencia" required>
-                <option value="{{$dependencia}}"> {{$dependencia}}~{{$nombreDependencia}} </option>
+                <option value="{{$dependencia}}"> {{$dependencia}}~{{$name}} </option>
 
                 @foreach($listaDependenciasSelect as $data)
-                    <option value="{{$data->clave_dependencia}}">
-                        {{$data->clave_dependencia}}~{{$data->nombre_dependencia}}
+                    <option value="{{$data->code}}">
+                        {{$data->code}}~{{$data->name}}
                     </option>
                 @endforeach
             </select>

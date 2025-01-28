@@ -15,12 +15,11 @@
         <div class="w-1/4 ml-8">
             <label for="dependencia-dropdown" class="block mb-2 text-sm  text-gray-900 dark:text-gray-400" >Dependencia</label>
             <select id="dependencia-dropdown" class="estiloSelect" name="dependencia">
-
-                <option value="{{$dependencia}}">
-                    {{ $dependencia }} -
-                    {{DB::table('zona__dependencia__programas')->where('clave_dependencia','=',$dependencia)->value('nombre_dependencia') }}
-                </option>
-
+                @foreach(DB::table('departaments')->get() as $dependencia)
+                    <option value="{{ $dependencia->code }}">
+                        {{ $dependencia->code }} - {{ $dependencia->name }}
+                    </option>
+                @endforeach
             </select>
         </div>
 

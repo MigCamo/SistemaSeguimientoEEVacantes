@@ -43,7 +43,7 @@
                 dataType: 'json',
                 success: function (result) {
                     $.each(result.dependenciaVacante, function (key, value) {
-                        $("#dependencia-dropdown").append('<option value="' + value.clave_dependencia + '">' + value.clave_dependencia +"~"+ value.nombre_dependencia + '</option>');
+                        $("#dependencia-dropdown").append('<option value="' + value.code + '">' + value.code +"~"+ value.name + '</option>');
                     });
                 }
             });
@@ -68,7 +68,7 @@
                 dataType: 'json',
                 success: function (result) {
                     $.each(result.programaVacante, function (key, value) {
-                        $("#programa-dropdown").append('<option value="' + value.clave_programa + '">' + value.clave_programa +"~"+ value.nombre_programa + '</option>');
+                        $("#programa-dropdown").append('<option value="' + value.program_code + '">' + value.program_code +"~"+ value.name + '</option>');
                     });
                 }
             });
