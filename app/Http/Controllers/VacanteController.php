@@ -170,19 +170,37 @@ class VacanteController extends Controller
     public function search(Request $request){
 
         $user = auth()->user()->id;
-        //$idUsuario = $user->id;
         $zona = $request->get('zona');
         $dependencia = $request->get('dependencia');
         $programa = $request->get('programa');
         $filtro = $request->get('filtro');
         $busqueda = $request->get('search');
 
-        $nombreZona = DB::table('regions')->where('id',$zona)->value('name');
-        $nombreDependencia = DB::table('zona__dependencias')->where('clave_dependencia',$dependencia)->value('nombre_dependencia');
-        $nombrePrograma = DB::table('zona__dependencia__programas')->where('clave_programa',$programa)->value('nombre_programa');
+        $nombreZona = DB::table('regions')->where('code',$zona)->value('name');
 
-        $listaDependenciasSelect = Regions_Departaments::all()->where('id_zona',$zona);
-        $listaProgramasSelect = Regions_Departament_Programs::all()->where('clave_dependencia',$dependencia);
+        $nombreDependencia = DB::table('departaments')
+            ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
+            ->where('regions_departaments.departament_code', $dependencia)
+            ->value('departaments.name');
+
+        //$nombrePrograma = DB::table('zona__dependencia__programas')->where('clave_programa',$programa)->value('nombre_programa');
+        $nombrePrograma = DB::table('educational_programs')
+            ->join('regions_educational_programs', 'educational_programs.program_code', '=', 'regions_educational_programs.educational_program_code')
+            ->where('regions_educational_programs.educational_program_code', $programa)
+            ->get();
+
+
+        $listaDependenciasSelect = DB::table('departaments')
+            ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
+            ->where('regions_departaments.region_code', $zona)
+            ->get();
+        
+        //$listaProgramasSelect = Regions_Departament_Programs::all()->where('clave_dependencia',$dependencia);
+
+        $listaProgramasSelect = DB::table('educational_programs')
+            ->join('regions_educational_programs', 'educational_programs.program_code', '=', 'regions_educational_programs.educational_program_code')
+            ->where('regions_educational_programs.departament_code', $dependencia)
+            ->get();
 
         $zonas = Region::all();
 

@@ -5,13 +5,11 @@
             <label for="zona-dropdown" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Zona</label>
             <select  id="zona-dropdown" name="zona" class="estiloSelect" required>
 
-                <option value="{{$zona}}">
-                    {{$zona}}~{{$nombreZona}}
-                </option>
+                <option>Selecciona la zona</option>
 
                 @foreach ($zonas as $data)
-                    <option value="{{$data->id}}">
-                        {{$data->id}}~{{$data->nombre}}
+                    <option value="{{$data->code}}">
+                        {{$data->code}}~{{$data->name}}
                     </option>
                 @endforeach
             </select>
@@ -19,8 +17,8 @@
         <div class="w-1/4 ml-8">
             <label for="dependencia-dropdown" class="block mb-2 text-sm  text-gray-900 dark:text-gray-400" >Dependencia</label>
             <select id="dependencia-dropdown" class="estiloSelect" name="dependencia" required>
-                <option value="{{$dependencia}}"> {{$dependencia}}~{{$name}} </option>
-
+                <option>Selecciona la dependencia</option>
+                dd($listaDependenciasSelect);
                 @foreach($listaDependenciasSelect as $data)
                     <option value="{{$data->code}}">
                         {{$data->code}}~{{$data->name}}
@@ -93,7 +91,7 @@
                 dataType: 'json',
                 success: function (result) {
                     $.each(result.dependenciaVacante, function (key, value) {
-                        $("#dependencia-dropdown").append('<option value="' + value.clave_dependencia  +  '">' + value.clave_dependencia +"~"+ value.nombre_dependencia + '</option>');
+                        $("#dependencia-dropdown").append('<option value="' + value.code  +  '">' + value.code +"~"+ value.name + '</option>');
                     });
                 }
             });
@@ -118,7 +116,7 @@
                 dataType: 'json',
                 success: function (result) {
                     $.each(result.programaVacante, function (key, value) {
-                        $("#programa-dropdown").append('<option value="' + value.clave_programa + '">' + value.clave_programa +"~"+ value.nombre_programa + '</option>');
+                        $("#programa-dropdown").append('<option value="' + value.program_code + '">' + value.program_code +"~"+ value.name + '</option>');
                     });
                 }
             });
