@@ -33,8 +33,8 @@
                 <option value="{{$programa}}"> {{$programa}}~{{$nombrePrograma}} </option>
 
                 @foreach($listaProgramasSelect as $data)
-                    <option value="{{$data->clave_programa}}">
-                        {{$data->clave_programa}}~{{$data->nombre_programa}}
+                    <option value="{{$data->program_code}}">
+                        {{$data->program_code}}~{{$data->name}}
                     </option>
                 @endforeach
             </select>

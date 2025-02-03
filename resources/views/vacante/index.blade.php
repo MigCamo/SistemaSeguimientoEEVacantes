@@ -92,67 +92,17 @@
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
 
                         <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{$vacante->numPrograma}} -
-                            {{DB::table('zona__dependencia__programas')->where('clave_programa','=',$vacante->numPrograma)->value('nombre_programa') }}
+                            {{$vacante->educational_program_code}} -
+                            {{DB::table('educational_programs')->join('regions_educational_programs','educational_programs.program_code', '=', 'regions_educational_programs.educational_program_code')->where('educational_programs.program_code', $vacante->educational_program_code)->value('name') }}
+
                         </th>
 
                         <td class="py-4 px-6">
-                            {{$vacante->nombreMateria}}
+                            {{$vacante->name}}
                         </td>
 
                         <td class="py-4 px-6">
-                            {{$vacante->numHoras}}
-                        </td>
-                        <td class="py-4 px-6">
-                            {{$vacante->tipoContratacion}}
-                        </td>
-
-                        <td class="py-4 px-6">
-                            {{$vacante->nombreDocente}}
-                        </td>
-
-                        <td class="py-4 px-6">
-
-                            @if( $vacante->archivo != "Inexistente" )
-
-
-                                <?php
-                                $path = "vac-{$vacante->id}";
-                                $disk = Storage::disk('azure');
-                                $files = $disk->files($path);
-                                $filesList = array();
-                                foreach ($files as $file){
-                                    $filename = "$file";
-                                    $item = array(
-                                        'name' => $filename,
-                                    );
-                                    array_push($filesList,$item);
-                                }
-                                ?>
-
-                                @foreach ($filesList as $file)
-
-                                    @if(count($file)<=0))
-
-                                    Inexistente
-
-                                    @else
-
-                                    <a target="_blank" href="https://gestionvacantes.blob.core.windows.net/files/{{$file["name"]}}" class="font-medium text-blue-600 underline dark:text-blue-500 hover:no-underline">
-                                        <img src="{{asset('images/file.png')}}" alt="{{$file["name"]}}" title="{{$file["name"]}}">
-                                    </a>
-                                    <br>
-
-                                    @endif
-
-                                @endforeach
-
-                            @else
-
-                                Inexistente
-
-                            @endif
-
+                            {{$vacante->hours}}
                         </td>
 
                         @if ( Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin') )
@@ -170,17 +120,17 @@
                                 <td class="py-4 px-2 text-right">
                                     <button type="button"
                                             class="focus:outline-none text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-900"
-                                            data-modal-toggle="view-modal{{$vacante->id}}">Ver Info</button>
+                                            data-modal-toggle="view-modal{{$vacante->nrc}}">Ver Info</button>
                                 </td>
 
                                 <td class="py-4 px-2 text-right">
-                                    <a href="{{route('vacante.edit',$vacante->id)}}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Editar</a>
+                                    <a href="{{route('vacante.edit',$vacante->nrc)}}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Editar</a>
                                 </td>
 
                                 <td class="py-4 px-2 text-right">
                                     <button type="button"
                                             class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-                                            data-modal-toggle="delete-modal{{$vacante->id}}">Cerrar EE</button>
+                                            data-modal-toggle="delete-modal{{$vacante->nrc}}">Cerrar EE</button>
                                 </td>
 
                             @endif

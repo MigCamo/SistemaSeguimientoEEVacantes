@@ -79,13 +79,18 @@ class VacanteController extends Controller
                 $filtro = "";
                 $busqueda = "";
                 $isDeleted = false;
-                $vacantes = DB::table('educational_experience_vacancies')
-                    ->join('school_periods',function($join){
-                        $join->on('educational_experience_vacancies.school_period_code','=','school_periods.code')
-                            ->where('school_periods.current',"=",1);
+                $vacantes = DB::table('educational_experience_vacancies as ev')
+                    // Join para obtener la información del período escolar actual
+                    ->join('school_periods as sp', function($join) {
+                        $join->on('ev.school_period_code', '=', 'sp.code')
+                            ->where('sp.current', '=', 1);
                     })
-                    ->paginate('15')
-                ;
+                    // Join para obtener la información de la experiencia educativa asociada
+                    ->join('educational_experiences as ee', 'ev.educational_experience_code', '=', 'ee.code')
+                    ->leftJoin('assigned_vacancies as av', 'ev.nrc', '=', 'av.ee_vacancy_code')
+                    // Seleccionar columnas de ambas tablas, puedes ajustar los campos según tus necesidades
+                    ->select('ev.*', 'ee.*', 'sp.code as period_code', 'sp.current', 'av.reason_code', 'av.type_asignation_code', 'av.lecturer_code', 'av.*')
+                    ->paginate(15);
 
         }else{
 
@@ -204,18 +209,26 @@ class VacanteController extends Controller
 
         $zonas = Region::all();
 
-        event(new SelectVacanteIndex($user,$zona,$dependencia,$programa,$filtro,$busqueda));
-        $isDeleted = $filtro=="VacantesCerradas";
-        $vacantes = $this->busquedaVacante($zona,$dependencia,$programa,$filtro,$busqueda);
+        /*event(new SelectVacanteIndex($user,$zona,$dependencia,$programa,$filtro,$busqueda));
+        $isDeleted = $filtro=="VacantesCerradas";*/
+        $vacantes = DB::table('educational_experience_vacancies as ev')
+            ->join('Regions as r', 'ev.region_code', '=', 'r.code')
+            ->join('departaments as d', 'ev.departament_code', '=', 'd.code')
+            ->join('Educational_Programs as ep', 'ev.educational_program_code', '=', 'ep.program_code')
+            ->where('r.code', 1)
+            ->where('d.code', 11304)
+            ->where('ep.program_code', 14352)
+            ->select('ev.*')
+            ->get();
         $countVacantes = $vacantes->count();
 
-        $programasEducUsuario = DB::table('regions_departament_programs')
+        $programasEducUsuario = DB::table('regions_educational_programs')
                 ->where('region_code', '=', $zona)
                 ->where('departament_code', '=', $dependencia)
                 ->get();
 
         return view('vacante.index', compact(
-                'vacantes','zona','zonas','dependencia','programa','filtro','isDeleted','countVacantes',
+                'vacantes','zona','zonas','dependencia','programa','filtro','countVacantes',
                 'programasEducUsuario', 'nombreZona', 'nombreDependencia', 'nombrePrograma', 'listaDependenciasSelect',
                 'listaProgramasSelect'
             )
