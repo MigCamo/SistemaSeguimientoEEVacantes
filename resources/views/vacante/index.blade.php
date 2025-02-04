@@ -11,7 +11,7 @@
     <!-- Scripts -->
     <!-- <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-
+    <script src="https://unpkg.com/@themesberg/flowbite@latest/dist/flowbite.bundle.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @vite('node_modules/flowbite/dist/flowbite.js')
     @livewireStyles
@@ -91,7 +91,7 @@
                 @foreach($vacantes as $vacante)
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
 
-                        <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                             {{$vacante->educational_program_code}} -
                             {{DB::table('educational_programs')->join('regions_educational_programs','educational_programs.program_code', '=', 'regions_educational_programs.educational_program_code')->where('educational_programs.program_code', $vacante->educational_program_code)->value('name') }}
 
@@ -107,16 +107,6 @@
 
                         @if ( Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin') )
 
-                            @if($isDeleted)
-
-                                <td class="py-4 px-2 text-right">
-                                    <button type="button"
-                                            class="focus:outline-none text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-900"
-                                            data-modal-toggle="view-modal{{$vacante->id}}">Ver Info</button>
-                                </td>
-
-                            @else
-
                                 <td class="py-4 px-2 text-right">
                                     <button type="button"
                                             class="focus:outline-none text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-900"
@@ -126,14 +116,11 @@
                                 <td class="py-4 px-2 text-right">
                                     <a href="{{route('vacante.edit',$vacante->nrc)}}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Editar</a>
                                 </td>
-
                                 <td class="py-4 px-2 text-right">
                                     <button type="button"
                                             class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
                                             data-modal-toggle="delete-modal{{$vacante->nrc}}">Cerrar EE</button>
                                 </td>
-
-                            @endif
 
                         @else
 

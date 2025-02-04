@@ -101,6 +101,7 @@ class VacanteController extends Controller
             $user = auth()->user();
             $zona = $user->zona;
             $dependencia = $user->dependencia;
+            $isDeleted = false;
             $programasEducUsuario = DB::table('zona__dependencia__programas')
                 ->where('id_zona','=',$zona)
                 ->where('clave_dependencia','=',$dependencia)
@@ -211,14 +212,24 @@ class VacanteController extends Controller
 
         /*event(new SelectVacanteIndex($user,$zona,$dependencia,$programa,$filtro,$busqueda));
         $isDeleted = $filtro=="VacantesCerradas";*/
+
         $vacantes = DB::table('educational_experience_vacancies as ev')
+            // Join para obtener la información del período escolar actual
+            ->join('school_periods as sp', function($join) {
+                $join->on('ev.school_period_code', '=', 'sp.code')
+                    ->where('sp.current', '=', 1);
+            })
+            // Join para obtener la información de la experiencia educativa asociada
+            ->join('educational_experiences as ee', 'ev.educational_experience_code', '=', 'ee.code')
+            ->leftJoin('assigned_vacancies as av', 'ev.nrc', '=', 'av.ee_vacancy_code')
             ->join('Regions as r', 'ev.region_code', '=', 'r.code')
             ->join('departaments as d', 'ev.departament_code', '=', 'd.code')
             ->join('Educational_Programs as ep', 'ev.educational_program_code', '=', 'ep.program_code')
-            ->where('r.code', 1)
-            ->where('d.code', 11304)
-            ->where('ep.program_code', 14352)
-            ->select('ev.*')
+            ->where('r.code', $zona)
+            ->where('d.code', $dependencia)
+            ->where('ep.program_code', $programa)
+            // Seleccionar columnas de ambas tablas, puedes ajustar los campos según tus necesidades
+            ->select('ev.*', 'ee.*', 'sp.code as period_code', 'sp.current', 'av.reason_code', 'av.type_asignation_code', 'av.lecturer_code', 'av.*')
             ->get();
         $countVacantes = $vacantes->count();
 
@@ -846,13 +857,32 @@ class VacanteController extends Controller
      */
     public function destroy($id)
     {
-        $vacante = Educational_Experience_Vacancies::findOrFail($id);
+        $vacante = DB::table('educational_experience_vacancies as ev')
+                    // Join para obtener la información del período escolar actual
+                    ->join('school_periods as sp', function($join) {
+                        $join->on('ev.school_period_code', '=', 'sp.code')
+                            ->where('sp.current', '=', 1);
+                    })
+                    // Join para obtener la información de la experiencia educativa asociada
+                    ->join('educational_experiences as ee', 'ev.educational_experience_code', '=', 'ee.code')
+                    ->leftJoin('assigned_vacancies as av', 'ev.nrc', '=', 'av.ee_vacancy_code')
+                    ->where('ev.nrc', '=', $id)
+                    // Seleccionar columnas de ambas tablas, puedes ajustar los campos según tus necesidades
+                    ->select('ev.*', 'ee.*', 'sp.code as period_code', 'sp.current', 'av.reason_code', 'av.type_asignation_code', 'av.lecturer_code', 'av.*')
+                    ->first();
 
-        $numMotivo = $vacante->numMotivo;
-        $numHoras = $vacante->numHoras;
-        $numPrograma = $vacante->numPrograma;
+        
+                
+        $numMotivo = $vacante->reason_code;
+        $numHoras = $vacante->hours;
+        $numPrograma = $vacante->educational_program_code;
 
-        $vacante->delete();
+        if (!$vacante) {
+            return redirect()->route('vacante.index')->with('error', 'Vacante no encontrada');
+        }
+
+        // Eliminar la vacante usando el Query Builder
+        DB::table('educational_experience_vacancies')->where('nrc', $id)->delete();
 
         $user = Auth::user();
         $data = "Eliminación de Vacante ID: $id";
