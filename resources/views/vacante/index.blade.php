@@ -11,7 +11,7 @@
     <!-- Scripts -->
     <!-- <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'> -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-    <script src="https://unpkg.com/@themesberg/flowbite@latest/dist/flowbite.bundle.js"></script>
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @vite('node_modules/flowbite/dist/flowbite.js')
     @livewireStyles
