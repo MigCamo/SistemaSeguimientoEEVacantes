@@ -3,7 +3,7 @@
     <select  id="numMateria-dropdown" name="numMateria" class="estiloSelect" required>
         <option value="">Selecciona la experiencia educativa</option>
         @foreach ($experienciasEducativas as $data)
-            <option value="{{$data->code}}~{{$data->name}}">
+            <option value="{{$data->code}}">
                 {{$data->code}}~{{$data->name}}
             </option>
         @endforeach

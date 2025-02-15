@@ -2,10 +2,10 @@
         <div class="col-span-6 sm:col-span-2 lg:col-span-2">
             <label for="zona-dropdown" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Zona</label>
             <select  id="zona-dropdown" name="numZona" class="estiloSelect" required>
-                <option value="{{$vacante->numZona}}">{{$vacante->numZona}}~{{$nombreZonaVacante}}</option>
+                <option value="{{$vacante->region_code}}">{{$vacante->region_code}}~{{$nombreZonaVacante}}</option>
                 @foreach ($zonas as $data)
-                    <option value="{{$data->id}}">
-                        {{$data->id}}~{{$data->nombre}}
+                    <option value="{{$data->code}}">
+                        {{$data->code}}~{{$data->name}}
                     </option>
                 @endforeach
             </select>
@@ -14,10 +14,10 @@
         <div class="col-span-6 sm:col-span-2 lg:col-span-2">
             <label for="dependencia-dropdown" class="block mb-2 text-sm  text-gray-900 dark:text-gray-400" >Dependencia</label>
             <select id="dependencia-dropdown" class="estiloSelect" name="numDependencia">
-                <option value="{{$vacante->numDependencia}}">{{$vacante->numDependencia}}~{{$nombreDependenciaVacante}}</option>
+                <option value="{{$vacante->departament_code}}">{{$vacante->departament_code}}~{{$nombreDependenciaVacante}}</option>
                 @foreach ($listaDependencias as $data)
-                    <option value="{{$data->clave_dependencia}}">
-                        {{$data->clave_dependencia}}~{{$data->nombre_dependencia}}
+                    <option value="{{$data->code}}">
+                        {{$data->code}}~{{$data->name}}
                     </option>
                 @endforeach
             </select>
@@ -26,10 +26,10 @@
         <div class="col-span-6 sm:col-span-2 lg:col-span-2">
             <label for="programa-dropdown" class="block mb-2 text-sm  text-gray-900 dark:text-gray-400" >Programa Educativo</label>
             <select id="programa-dropdown" class="estiloSelect" name="numPrograma">
-                <option value="{{$vacante->numPrograma}}">{{$vacante->numPrograma}}~{{$nombreProgramaEducativo}}</option>
+                <option value="{{$vacante->educational_program_code}}">{{$vacante->educational_program_code}}~{{$nombreProgramaEducativo}}</option>
                 @foreach ($listaProgramas as $data)
-                    <option value="{{$data->clave_programa}}">
-                        {{$data->clave_programa}}~{{$data->nombre_programa}}
+                    <option value="{{$data->program_code}}">
+                        {{$data->program_code}}~{{$data->name}}
                     </option>
                 @endforeach
             </select>

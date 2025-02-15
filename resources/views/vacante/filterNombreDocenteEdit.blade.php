@@ -41,8 +41,8 @@
         @foreach ($docentes as $data)
             <option
                 value="{{$data->nombre}} {{$data->apellidoPaterno}} {{$data->apellidoMaterno}}-{{$data->nPersonal}}">
-                {{$data->nombre}} {{$data->apellidoPaterno}} {{$data->apellidoMaterno}}
-                -{{$data->nPersonal}}
+                {{$data->names}} {{$data->lastname}} {{$data->maternal_surname}}
+                -{{$data->staff_number}}
             </option>
         @endforeach
     </select>

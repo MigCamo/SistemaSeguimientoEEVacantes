@@ -90,7 +90,7 @@
                                         <select  id="periodo" name="periodo" class="estiloSelect" required>
                                         <option value="">Selecciona el periodo</option>
                                             @foreach ($periodos as $data)
-                                                <option value="{{$data->period_number}}-{{$data->code}}">
+                                                <option value="{{$data->code}}">
                                                     {{$data->period_number}}-{{$data->code}}-{{$data->description}}
                                                 </option>
                                             @endforeach
@@ -110,20 +110,20 @@
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
                                         <label for="grupo" class="labelForms">NRC</label>
-                                        <input type="text" name="grupo" id="grupo" class="inputForms"
+                                        <input type="text" name="nrc" id="nrc" class="inputForms"
                                                placeholder=""
                                                required>
                                     </div>
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                        <label for="numPlaza" class="labelForms">Número de plaza</label>
-                                        <input type="number" name="numPlaza" id="numPlaza" class="inputForms"
+                                        <label for="numPlaza" class="labelForms">Grupo</label>
+                                        <input type="number" name="grupo" id="grupo" class="inputForms"
                                                placeholder="Ej. 1523" required>
                                     </div>
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                        <label for="plan" class="labelForms">Plan</label>
-                                        <input type="number" name="plan" id="plan" class="inputForms" placeholder="Ej. ">
+                                        <label for="plan" class="labelForms">Subgrupo</label>
+                                        <input type="number" name="subgrupo" id="subgrupo" class="inputForms" placeholder="Ej. ">
                                     </div>
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
@@ -131,7 +131,7 @@
                                         <select  id="numMotivo" name="numMotivo" class="estiloSelect" required>
                                             <option value="">Selecciona el motivo</option>
                                             @foreach ($motivos as $data)
-                                                <option value="{{$data->code}}-{{$data->name}}">
+                                                <option value="{{$data->code}}">
                                                     {{$data->code}}-{{$data->name}}
                                                 </option>
                                             @endforeach
@@ -154,7 +154,7 @@
                                         <select  id="tipoAsignacion" name="tipoAsignacion" class="estiloSelect">
                                             <option value="">Selecciona el tipo de asignación</option>
                                             @foreach ($tiposAsignacion as $data)
-                                                <option value="{{$data->id}}-{{$data->type_asignation}}">
+                                                <option value="{{$data->id}}">
                                                     {{$data->id}}-{{$data->type_asignation}}
                                                 </option>                                            @endforeach
                                         </select>
@@ -167,7 +167,7 @@
                                         <select  id="numPersonalDocente" name="numPersonalDocente" class="estiloSelect">
                                             <option value="">Selecciona al docente</option>
                                             @foreach ($docentes as $data)
-                                                <option value="{{$data->names}} {{$data->lastname}} {{$data->maternal_surname}}-{{$data->staffnumber}}">
+                                                <option value="{{$data->staff_number}}">
                                                     {{$data->names}} {{$data->lastname}} {{$data->maternal_surname}}-{{$data->staff_number}}
                                                 </option>
                                             @endforeach
