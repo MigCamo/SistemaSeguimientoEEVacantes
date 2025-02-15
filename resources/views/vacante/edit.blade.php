@@ -83,35 +83,6 @@
                     <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white font-medium">Documento(s)
                         actual(es)</label>
 
-                    @foreach ($files as $file)
-                        <div class="gap-6">
-                            <a class="font-medium text-blue-600 underline dark:text-blue-500 hover:no-underline"
-                               target="_blank"
-                               href="https://gestionvacantes.blob.core.windows.net/files/{{$file["name"]}}">{{$file["name"]}}
-                            </a>
-                                <?php
-                                $archivo = $file["name"];
-                                $archivoPartes = explode("/", $archivo);
-                                $vacanteArchivo = $archivoPartes[0];
-                                $nombreArchivo = $archivoPartes[1];
-                                ?>
-
-                            <form
-                                action="{{ route('vacante.deleteFile',['id' =>$vacanteArchivo,'file' => $nombreArchivo ]) }}"
-                                method="POST">
-                                @csrf
-                                <button type="submit"
-                                        class="px-6 font-medium text-red-600 underline dark:text-blue-500 hover:no-underline">
-                                    Eliminar
-                                </button>
-                            </form>
-
-                            <br>
-                        </div>
-                    @endforeach
-
-
-
                     @include('vacante.createDocente')
                     @include('vacante.createEE')
 
@@ -138,7 +109,7 @@
                     @endforeach
                 @endif
 
-                <form action="{{ route('vacante.update',$vacante->id) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('vacante.update',$vacante->nrc) }}" method="POST" enctype="multipart/form-data">
                     <div class="overflow-hidden shadow sm:rounded-md">
                         <div class="bg-white px-4 py-5 sm:p-6">
                             <div class="grid grid-cols-6 gap-6">
@@ -149,11 +120,11 @@
                                            class="block text-sm font-medium text-gray-900 dark:text-gray-400">Periodo</label>
                                     <select id="periodo" name="periodo" class="estiloSelect">
                                         <option
-                                            value="{{$vacante->periodo}}-{{$vacante->clavePeriodo}}">{{$vacante->periodo}}
+                                            value="{{$vacante->periodo}}-{{$vacante->school_period_code}}">{{$vacante->school_period_code}}
                                             -{{$vacante->clavePeriodo}}</option>
                                         @foreach ($periodos as $data)
-                                            <option value="{{$data->nPeriodo}}-{{$data->clavePeriodo}}">
-                                                {{$data->nPeriodo}}-{{$data->clavePeriodo}}-{{$data->descripcion}}
+                                            <option value="{{$data->period_number}}-{{$data->code}}">
+                                                {{$data->period_number}}-{{$data->description}}
                                             </option>
                                         @endforeach
                                     </select>
@@ -174,7 +145,7 @@
                                     <label for="grupo" class="labelForms">NRC</label>
                                     <input type="text" name="grupo" id="grupo" class="inputForms"
                                            required
-                                           value="{{$vacante->grupo}}">
+                                           value="{{$vacante->nrc}}">
                                 </div>
 
                                 {{--
@@ -203,8 +174,8 @@
                                     <select id="numMotivo" name="numMotivo" class="estiloSelect" required>
                                         <option value="{{$vacante->numMotivo}}">{{$vacante->numMotivo}}</option>
                                         @foreach ($motivos as $data)
-                                            <option value="{{$data->numeroMotivo}}">
-                                                {{$data->numeroMotivo}} {{$data->nombre}}
+                                            <option value="{{$data->code}}">
+                                                {{$data->code}} {{$data->name}}
                                             </option>
                                         @endforeach
                                     </select>
@@ -231,8 +202,8 @@
                                         <option
                                             value="{{$vacante->tipoAsignacion}}">{{$vacante->tipoAsignacion}}</option>
                                         @foreach ($tiposAsignacion as $data)
-                                            <option value="{{$data->tipo}}">
-                                                {{$data->tipo}}
+                                            <option value="{{$data->id}}">
+                                                {{$data->type_asignation}}
                                             </option>
                                         @endforeach
                                     </select>
@@ -377,16 +348,6 @@
                                 <div class="col-span-6">
                                     <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                            for="file">Documento(s) actual(es)</label>
-
-                                    @foreach ($files as $file)
-                                        <div class="gap-6">
-                                            <a class="font-medium text-blue-600 underline dark:text-blue-500 hover:no-underline"
-                                               target="_blank"
-                                               href="https://gestionvacantes.blob.core.windows.net/files/{{$file["name"]}}">{{$file["name"]}}
-                                            </a>
-                                            <br>
-                                        </div>
-                                    @endforeach
                                     <input
                                         class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
                                         aria-describedby="file_input_help" id="file" type="file" accept=".pdf"
