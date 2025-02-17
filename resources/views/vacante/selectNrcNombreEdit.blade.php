@@ -1,9 +1,9 @@
 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
     <label for="numMateria-dropdown" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Experiencia educativa</label>
     <select  id="numMateria-dropdown" name="numMateria" class="estiloSelect">
-            <option value="{{$vacante->nrc}}">{{$vacante->nrc}}~{{$nombreExperienciaEducativa->name}}</option>
+            <option value="{{$nombreExperienciaEducativa->code}}">{{$vacante->nrc}}~{{$nombreExperienciaEducativa->name}}</option>
             @foreach ($experienciasEducativas as $data)
-                <option value="{{$data->code}}~{{$data->name}}">
+                <option value="{{$data->code}}">
                     {{$data->code}}~{{$data->name}}
                 </option>
             @endforeach
