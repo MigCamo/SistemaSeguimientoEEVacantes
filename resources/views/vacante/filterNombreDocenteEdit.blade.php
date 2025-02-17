@@ -36,11 +36,11 @@
            class="block mb-0 text-sm font-medium text-gray-900 dark:text-gray-400">Docente</label>
     <select id="numPersonalDocente-dropdowm" name="numPersonalDocente" class="estiloSelect">
         <option
-            value="{{$vacante->nombreDocente}}-{{$vacante->numPersonalDocente}}">{{$vacante->nombreDocente}}
-            -{{$vacante->numPersonalDocente}}</option>
+            value="{{$docenteSeleccionado->staff_number}}">{{$docenteSeleccionado->names}} {{$docenteSeleccionado->lastname}} {{$docenteSeleccionado->maternal_surname}}
+            -{{$docenteSeleccionado->staff_number}}</option>
         @foreach ($docentes as $data)
             <option
-                value="{{$data->nombre}} {{$data->apellidoPaterno}} {{$data->apellidoMaterno}}-{{$data->nPersonal}}">
+                value="{{$data->staff_number}}">
                 {{$data->names}} {{$data->lastname}} {{$data->maternal_surname}}
                 -{{$data->staff_number}}
             </option>
