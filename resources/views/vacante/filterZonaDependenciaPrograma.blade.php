@@ -46,11 +46,6 @@
 
                 <option value="Todas">Todas</option>
                 <option value="Vacantes">Vacantes</option>
-                <option value="NoVacantes">No Vacantes</option>
-                <option value="VacantesCerradas">Vacantes Cerradas</option>
-                <option value="VacantesArchivos">Vacantes Con Archivos</option>
-                <option value="ComplementoCarga">Complemento de carga</option>
-                <option value="CargaObligatoria">Carga obligatoria</option>
             </select>
         </div>
     </div>
