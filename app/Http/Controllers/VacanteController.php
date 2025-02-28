@@ -128,7 +128,7 @@ class VacanteController extends Controller
                 ;
 
             }else{
-                /** 
+                /**
                 $programa = $userSelect->clave_programa;
                 $filtro = $userSelect->filtro;
                 $busqueda = $userSelect->busqueda;
@@ -202,7 +202,7 @@ class VacanteController extends Controller
             ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
             ->where('regions_departaments.region_code', $zona)
             ->get();
-        
+
         //$listaProgramasSelect = Regions_Departament_Programs::all()->where('clave_dependencia',$dependencia);
 
         $listaProgramasSelect = DB::table('educational_programs')
@@ -219,7 +219,7 @@ class VacanteController extends Controller
     // Join para obtener la información del período escolar actual, condicionado por $filtro
             ->join('school_periods as sp', function($join) use ($filtro) {
                 $join->on('ev.school_period_code', '=', 'sp.code');
-                
+
                 // Si el filtro es "Vacantes", aplicamos la condición sp.current = 1
                 if ($filtro === 'Vacantes') {
                     $join->where('sp.current', '=', 1);
@@ -280,7 +280,7 @@ class VacanteController extends Controller
         $listaExperienciasEducativas = EducationalExperience::all();
         $listaPeriodos = SchoolPeriod::all();
         $listaTiposAsignacion = TypeAsignation::all();
-        
+
 
         $userAdmin = Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin');
 
@@ -455,7 +455,7 @@ class VacanteController extends Controller
      */
     public function edit($id)
     {
-        $user = auth()->user(); 
+        $user = auth()->user();
 
         $vacante = Educational_Experience_Vacancies::findOrFail($id);
         $vacanteAsignada = DB::table('assigned_vacancies')->where('ee_vacancy_code', '=', $vacante->nrc)->first();
@@ -524,7 +524,7 @@ class VacanteController extends Controller
             $listaProgramas = DB::table('educational_programs')->join('regions_educational_programs', 'educational_programs.program_code', '=', 'regions_educational_programs.educational_program_code')->where('regions_educational_programs.departament_code',$claveDependenciaVacante)->where('educational_programs.program_code', '!=', $programaEducativoSeleccionado)->get();
             //obtener histórico docentes
             $listaDocentesHistorico = Lecturer::all();
-            
+
             /*
             *Obtener los archivos
             *@link https://www.jhanley.com/blog/laravel-adding-azure-blob-storage/
@@ -591,7 +591,7 @@ class VacanteController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
+
         DB::beginTransaction();
 
         try{
@@ -606,8 +606,8 @@ class VacanteController extends Controller
             $vacante->class = $request->grupo;
             $vacante->subGroup = $request->subGrupo;
             $vacante->numPlaza = $request->numPlaza;
-            $vacante->save();    
-            
+            $vacante->save();
+
             DB::table('assigned_vacancies')
             ->where('ee_vacancy_code', $vacante->nrc)
             ->update([
@@ -741,8 +741,8 @@ class VacanteController extends Controller
                     ->select('ev.*', 'ee.*', 'sp.code as period_code', 'sp.current', 'av.reason_code', 'av.type_asignation_code', 'av.lecturer_code', 'av.*')
                     ->first();
 
-        
-                
+
+
         $numMotivo = $vacante->reason_code;
         $numHoras = $vacante->hours;
         $numPrograma = $vacante->educational_program_code;
@@ -1016,6 +1016,109 @@ class VacanteController extends Controller
 
         return $vacantes;
 
+    }
+
+    public function uploadCsvVacancies(Request $request)
+    {
+        $validated = $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:20480',
+        ]);
+
+        try {
+            $file = $request->file('csv_file');
+            $csvData = file_get_contents($file);
+
+            // Eliminar el BOM si está presente
+            $bom = pack('H*', 'EFBBBF');
+            $csvData = preg_replace("/^$bom/", '', $csvData);
+
+            $rows = array_map('str_getcsv', explode("\n", $csvData));
+
+            // Determinar el encabezado
+            $header = null;
+            $filteredRows = [];
+            foreach ($rows as $row) {
+                if (count(array_filter($row)) > 3 && is_null($header)) {
+                    $header = array_map('trim', $row);
+                    continue;
+                }
+
+                if ($header && count($row) == count($header)) {
+                    $filteredRows[] = array_map('trim', $row);
+                }
+            }
+
+            if (!$header) {
+                Log::error('No se encontró un encabezado válido en el archivo CSV.');
+                return redirect()->back()->with('status', 'error')->with('error_message', 'Encabezado no válido en el archivo CSV.');
+            }
+
+            Log::info('Archivo CSV procesado correctamente.');
+
+            // Obtener el periodo escolar activo
+            $activePeriod = SchoolPeriod::where('current', 1)->first();
+            if (!$activePeriod) {
+                Log::error('No se encontró un periodo escolar activo.');
+                return redirect()->back()->with('status', 'error')->with('error_message', 'No hay periodo escolar activo.');
+            }
+
+            foreach ($filteredRows as $row) {
+                $data = array_combine($header, $row);
+
+                $nrc = $data['NRC'] ?? null;
+                $programCode = $data['Clave Programática'] ?? null;
+                $experienceName = $data['Experiencia Educativa'] ?? null;
+
+                if (empty($nrc) || empty($programCode) || empty($experienceName)) {
+                    Log::warning("Fila ignorada por falta de datos: " . json_encode($data));
+                    continue;
+                }
+
+                // Buscar el código de la experiencia educativa por nombre
+                $educationalExperience = EducationalExperience::where('name', $experienceName)->first();
+                if (!$educationalExperience) {
+                    Log::warning("No se encontró la EE con nombre: $experienceName");
+                    continue;
+                }
+                $ee_code = $educationalExperience->code;
+
+                // Buscar la relación entre programa educativo, departamento y región
+                $relation = Regions_Educational_Program::where('educational_program_code', $programCode)->first();
+                if (!$relation) {
+                    Log::warning("No se encontró la relación entre programa educativo y región: $programCode");
+                    continue;
+                }
+
+                $region_code = $relation->region_code;
+                $departament_code = $relation->departament_code;
+
+                // Verificar si la vacante ya existe
+                $exists = Educational_Experience_Vacancies::where('nrc', $nrc)->exists();
+                if ($exists) {
+                    Log::info("Vacante con NRC $nrc ya registrada, se omite.");
+                    continue;
+                }
+
+                // Registrar la vacante
+                Educational_Experience_Vacancies::create([
+                    'nrc' => $nrc,
+                    'school_period_code' => $activePeriod->code,
+                    'region_code' => $region_code,
+                    'departament_code' => $departament_code,
+                    'area_code' => $educationalExperience->area_code,
+                    'educational_experience_code' => $ee_code,
+                    'class' => $data['Clase'] ?? '',
+                    'subGroup' => $data['Subgrupo'] ?? ''
+                ]);
+
+                Log::info("Vacante registrada: NRC $nrc, EE $ee_code");
+            }
+
+            return redirect()->back()->with('status', 'success');
+        } catch (\Exception $e) {
+            Log::error("Error al procesar el CSV: " . $e->getMessage());
+            return redirect()->back()->with('status', 'error')->with('error_message', $e->getMessage());
+        }
     }
 
 }
