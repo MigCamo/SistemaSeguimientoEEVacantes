@@ -351,6 +351,27 @@ class VacanteController extends Controller
             $vacante->class = $request->grupo;
             $vacante->subGroup = $request->subgrupo;
             $vacante->numPlaza = $request->numPlaza;
+
+            // 2. Guardar el PDF en la base de datos si se subió
+            if (!$request->hasFile('file')) {
+                throw new \Exception("Es obligatorio adjuntar un archivo PDF.");
+            }
+        
+            $file = $request->file('file');
+        
+            // Validar que el archivo sea un PDF
+            if ($file->getClientOriginalExtension() !== 'pdf') {
+                throw new \Exception("El archivo debe ser un PDF.");
+            }
+        
+            // Validar el tamaño del archivo (máximo 2MB)
+            if ($file->getSize() > 2 * 1024 * 1024) { // 2MB
+                throw new \Exception("El archivo no debe superar los 2MB.");
+            }
+        
+            // Convertir el archivo a binario y guardarlo en el campo `content`
+            $vacante->content = file_get_contents($file->getRealPath());
+
             $vacante->save();
 
             // 2. Crear la vacante asignada en Assigned_Vacancy
@@ -359,10 +380,11 @@ class VacanteController extends Controller
             $assignedVacancy->lecturer_code = $request->numPersonalDocente;
             $assignedVacancy->reason_code = $request->numMotivo;
             $assignedVacancy->type_asignation_code = $request->tipoAsignacion;
-            $assignedVacancy->noticeDate = Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d');
-            $assignedVacancy->assignmentDate = Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d');
-            $assignedVacancy->openingDate = Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d');
-            $assignedVacancy->closingDate = Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d');
+            $assignedVacancy->noticeDate = !empty($request->fechaAviso) ? Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d') : null;
+            $assignedVacancy->assignmentDate = !empty($request->fechaAsignacion) ? Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d') : null;
+            $assignedVacancy->openingDate = !empty($request->fechaApertura) ? Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d') : null;
+            $assignedVacancy->closingDate = !empty($request->fechaCierre) ? Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d') : null;
+
             $assignedVacancy->notes = $request->observaciones ?? '';
             $assignedVacancy->save();
 
