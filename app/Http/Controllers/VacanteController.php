@@ -9,6 +9,7 @@ use App\Models\Area;
 use App\Models\Docente;
 use App\Models\HistoricoDocente;
 use App\Models\Periodo;
+use App\Models\Regions_Educational_Program;
 use App\Models\SearchVacante;
 use App\Models\TipoAsignacion;
 use App\Models\Vacante;
@@ -36,6 +37,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use App\Models\Educational_Experience_Vacancies;
+
 
 
 class VacanteController extends Controller
@@ -99,7 +103,7 @@ class VacanteController extends Controller
                     return $query->where('educational_experience_vacancies.nombre', 'like', '%' . $busqueda . '%');
                 })
                 ->paginate(15);
-            
+
             $countVacantes = $vacantes->total();
 
             $nombreZona = DB::table('regions')->where('code', $zona)->value('name');
@@ -723,10 +727,10 @@ class VacanteController extends Controller
         //Obtener el usuario actual
         $user = Auth::user();
         //Concatenación de variables para mandarlo al event
-        $data = $request->periodo .  " " . $request->clavePeriodo . " " . $request->numZona . " " . 
-                $request->numDependencia . " " . $request->numPlaza . " " . $request->numHoras . " " . 
-                str_replace(' ', '',$request->numMateria) . " " . str_replace(' ', '',$request->nombreMateria) . " " . $request->grupo . " " . 
-                $request->numMotivo . " " . $request->tipoAsignacion . " " . $request->numPersonalDocente . " " . 
+        $data = $request->periodo .  " " . $request->clavePeriodo . " " . $request->numZona . " " .
+                $request->numDependencia . " " . $request->numPlaza . " " . $request->numHoras . " " .
+                str_replace(' ', '',$request->numMateria) . " " . str_replace(' ', '',$request->nombreMateria) . " " . $request->grupo . " " .
+                $request->numMotivo . " " . $request->tipoAsignacion . " " . $request->numPersonalDocente . " " .
                 $request->plan . " " . $request->observaciones . " " . $request->fechaAsignacion . " " .
                 $request->fechaApertura . " " . $request->fechaCierre . " " . $request->fechaRenuncia;
 
@@ -1075,5 +1079,109 @@ class VacanteController extends Controller
         return $vacantes;
 
     }
+
+    public function uploadCsvVacancies(Request $request)
+    {
+        $validated = $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:20480',
+        ]);
+
+        try {
+            $file = $request->file('csv_file');
+            $csvData = file_get_contents($file);
+
+            // Eliminar el BOM si está presente
+            $bom = pack('H*', 'EFBBBF');
+            $csvData = preg_replace("/^$bom/", '', $csvData);
+
+            $rows = array_map('str_getcsv', explode("\n", $csvData));
+
+            // Determinar el encabezado
+            $header = null;
+            $filteredRows = [];
+            foreach ($rows as $row) {
+                if (count(array_filter($row)) > 3 && is_null($header)) {
+                    $header = array_map('trim', $row);
+                    continue;
+                }
+
+                if ($header && count($row) == count($header)) {
+                    $filteredRows[] = array_map('trim', $row);
+                }
+            }
+
+            if (!$header) {
+                Log::error('No se encontró un encabezado válido en el archivo CSV.');
+                return redirect()->back()->with('status', 'error')->with('error_message', 'Encabezado no válido en el archivo CSV.');
+            }
+
+            Log::info('Archivo CSV procesado correctamente.');
+
+            // Obtener el periodo escolar activo
+            $activePeriod = SchoolPeriod::where('current', 1)->first();
+            if (!$activePeriod) {
+                Log::error('No se encontró un periodo escolar activo.');
+                return redirect()->back()->with('status', 'error')->with('error_message', 'No hay periodo escolar activo.');
+            }
+
+            foreach ($filteredRows as $row) {
+                $data = array_combine($header, $row);
+
+                $nrc = $data['NRC'] ?? null;
+                $programCode = $data['Clave Programática'] ?? null;
+                $experienceName = $data['Experiencia Educativa'] ?? null;
+
+                if (empty($nrc) || empty($programCode) || empty($experienceName)) {
+                    Log::warning("Fila ignorada por falta de datos: " . json_encode($data));
+                    continue;
+                }
+
+                // Buscar el código de la experiencia educativa por nombre
+                $educationalExperience = EducationalExperience::where('name', $experienceName)->first();
+                if (!$educationalExperience) {
+                    Log::warning("No se encontró la EE con nombre: $experienceName");
+                    continue;
+                }
+                $ee_code = $educationalExperience->code;
+
+                // Buscar la relación entre programa educativo, departamento y región
+                $relation = Regions_Educational_Program::where('educational_program_code', $programCode)->first();
+                if (!$relation) {
+                    Log::warning("No se encontró la relación entre programa educativo y región: $programCode");
+                    continue;
+                }
+
+                $region_code = $relation->region_code;
+                $departament_code = $relation->departament_code;
+
+                // Verificar si la vacante ya existe
+                $exists = Educational_Experience_Vacancies::where('nrc', $nrc)->exists();
+                if ($exists) {
+                    Log::info("Vacante con NRC $nrc ya registrada, se omite.");
+                    continue;
+                }
+
+                // Registrar la vacante
+                Educational_Experience_Vacancies::create([
+                    'nrc' => $nrc,
+                    'school_period_code' => $activePeriod->code,
+                    'region_code' => $region_code,
+                    'departament_code' => $departament_code,
+                    'area_code' => $educationalExperience->area_code,
+                    'educational_experience_code' => $ee_code,
+                    'class' => $data['Clase'] ?? '',
+                    'subGroup' => $data['Subgrupo'] ?? ''
+                ]);
+
+                Log::info("Vacante registrada: NRC $nrc, EE $ee_code");
+            }
+
+            return redirect()->back()->with('status', 'success');
+        } catch (\Exception $e) {
+            Log::error("Error al procesar el CSV: " . $e->getMessage());
+            return redirect()->back()->with('status', 'error')->with('error_message', $e->getMessage());
+        }
+    }
+
 
 }

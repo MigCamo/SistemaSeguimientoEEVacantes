@@ -73,7 +73,7 @@ Route::controller(VacanteController::class)->group(function (){
         Route::post('/vacante/updateRenuncia/{id}','updateRenuncia')->name('updateRenuncia');
 
         Route::get('/vacante/import',  'import')->name('import');
-        Route::post('/vacante/upload','uploadCSV')->name('upload');
+        Route::post('/vacante/uploadCsvVacancies','uploadCsvVacancies')->name('uploadCsvVacancies');
 
         Route::post('/vacante/storeDocente', 'storeDocente')->name('storeDocente');
         Route::post('/vacante/storeEe', 'storeEe')->name('storeEe');
