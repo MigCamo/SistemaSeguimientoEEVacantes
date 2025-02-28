@@ -171,7 +171,7 @@
                                     <label for="numMotivo"
                                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Motivo</label>
                                     <select id="numMotivo" name="numMotivo" class="estiloSelect" required>
-                                        <option value="{{$motivoSeleccionado->code}}">{{$motivoSeleccionado->code}}-{{$motivoSeleccionado->name}}</option>
+                                        <option value="{{$motivoSeleccionado->code ?? '' }}">{{($motivoSeleccionado->code ?? '') . '-' . ($motivoSeleccionado->name ?? '')}}</option>
                                         @foreach ($motivos as $data)
                                             <option value="{{$data->code}}">
                                                 {{$data->code}}-{{$data->name}}
@@ -186,11 +186,20 @@
                                         de Contratación</label>
                                     <select id="tipoContratacion" name="tipoContratacion" class="estiloSelect">
                                         <option
-                                            value="{{$vacanteAsignada->type_contract}}">{{$vacanteAsignada->type_contract}}</option>
+                                        value="{{ $vacanteAsignada->type_contract ?? '' }}">{{ $vacanteAsignada->type_contract ?? '' }}</option>
                                         <option value="PLANTA">Planta</option>
                                         <option value="IOD">Contratación IOD</option>
                                         <option value="IPP">Contratación IPP</option>
+                                        <option value="IPPL">Contratación IPPL</option>
                                     </select>
+                                </div>
+
+                                <div class="col-span-6 sm:col-span-2 lg:col-span-2">
+                                    <label for="grupo" class="labelForms">Número de plaza</label>
+                                    <input type="text" name="numPlaza" id="numPlaza" class="inputForms"
+                                        value="{{ optional($vacante)->numPlaza ?? '' }}"
+                                        placeholder=""
+                                        required>
                                 </div>
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
@@ -199,7 +208,7 @@
                                         de Asignación</label>
                                     <select id="tipoAsignacion" name="tipoAsignacion" class="estiloSelect">
                                         <option
-                                            value="{{$vacanteAsignada->type_asignation_code}}">{{$vacanteAsignada->type_asignation_code}}</option>
+                                            value="{{ $vacanteAsignada->type_asignation_code ?? '' }}">{{ $vacanteAsignada->type_asignation_code ?? '' }}
                                         @foreach ($tiposAsignacion as $data)
                                             <option value="{{$data->id}}">
                                                 {{$data->type_asignation}}
@@ -250,7 +259,7 @@
                                         </div>
                                         <input datepicker datepicker-format="dd/mm/yyyy" type="text"
                                             class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            value="{{ $vacanteAsignada->noticeDate ? \Carbon\Carbon::parse($vacanteAsignada->noticeDate)->format('d/m/Y') : '' }}"
+                                            value="{{ $vacanteAsignada && $vacanteAsignada->noticeDate ? \Carbon\Carbon::parse($vacanteAsignada->noticeDate)->format('d/m/Y') : '' }}"
                                             id="fechaAviso"
                                             name="fechaAviso">
 
@@ -272,7 +281,7 @@
                                         </div>
                                         <input datepicker datepicker-format="dd/mm/yyyy" type="text"
                                             class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            value="{{ $vacanteAsignada->assignmentDate ? \Carbon\Carbon::parse($vacanteAsignada->assignmentDate)->format('d/m/Y') : '' }}"
+                                            value="{{ $vacanteAsignada && $vacanteAsignada->assignmentDate ? \Carbon\Carbon::parse($vacanteAsignada->assignmentDate)->format('d/m/Y') : '' }}"
                                             id="fechaAsignacion"
                                             name="fechaAsignacion">
 
@@ -294,7 +303,7 @@
                                         </div>
                                         <input datepicker datepicker-format="dd/mm/yyyy" type="text"
                                             class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            value="{{ $vacanteAsignada->openingDate ? \Carbon\Carbon::parse($vacanteAsignada->openingDate)->format('d/m/Y') : '' }}"
+                                            value="{{ optional($vacanteAsignada)->openingDate ? \Carbon\Carbon::parse($vacanteAsignada->openingDate)->format('d/m/Y') : '' }}"
                                             id="fechaApertura"
                                             name="fechaApertura">
 
@@ -316,7 +325,7 @@
                                         </div>
                                         <input datepicker datepicker-format="dd/mm/yyyy" type="text"
                                             class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            value="{{ $vacanteAsignada->closingDate ? \Carbon\Carbon::parse($vacanteAsignada->closingDate)->format('d/m/Y') : '' }}"
+                                            value="{{ optional($vacanteAsignada)->closingDate ? \Carbon\Carbon::parse($vacanteAsignada->closingDate)->format('d/m/Y') : '' }}"
                                             id="fechaCierre"
                                             name="fechaCierre">
 
@@ -338,7 +347,7 @@
                                         </div>
                                         <input datepicker datepicker-format="dd/mm/yyyy" type="text"
                                             class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                            value="{{ $historicoDocentesReciente->fechaRenuncia ? \Carbon\Carbon::parse($historicoDocentesReciente->fechaRenuncia)->format('d/m/Y') : '' }}"
+                                            value="{{ optional($historicoDocentesReciente)->fechaRenuncia ? \Carbon\Carbon::parse($historicoDocentesReciente->fechaRenuncia)->format('d/m/Y') : '' }}"
                                             id="fechaRenuncia"
                                             name="fechaRenuncia">
                                     </div>
@@ -349,7 +358,7 @@
                                     <div class="mt-1">
                                         <textarea id="observaciones" name="observaciones" rows="3"
                                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                                  placeholder="Ej. Alguna observación">{{$vacanteAsignada->notes}}</textarea>
+                                                  placeholder="Ej. Alguna observación">{{ optional($vacanteAsignada)->notes ?? '' }}</textarea>
                                     </div>
                                 </div>
 

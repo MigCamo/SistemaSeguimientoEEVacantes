@@ -116,7 +116,7 @@
                                     </div>
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                        <label for="numPlaza" class="labelForms">Grupo</label>
+                                        <label for="grupo" class="labelForms">Grupo</label>
                                         <input type="number" name="grupo" id="grupo" class="inputForms"
                                                placeholder="Ej. 1523" required>
                                     </div>
@@ -145,6 +145,7 @@
                                             <option value="Planta">Planta</option>
                                             <option value="IOD">Contratación IOD</option>
                                             <option value="IPP">Contratación IPP</option>
+                                            <option value="IPPL">Contratación IPPL</option>
                                         </select>
                                     </div>
 
@@ -160,7 +161,14 @@
                                         </select>
                                     </div>
 
-                                    @include('vacante.filterNombreDocenteCreate')
+
+                                    <div class="col-span-6 sm:col-span-2 lg:col-span-2">
+                                        <label for="grupo" class="labelForms">Número de plaza</label>
+                                        <input type="text" name="numPlaza" id="numPlaza" class="inputForms"
+                                               placeholder=""
+                                               required>
+                                    </div>
+
 
                                     <div class="col-span-6">
                                         <label for="numPersonalDocente" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Docente</label>
