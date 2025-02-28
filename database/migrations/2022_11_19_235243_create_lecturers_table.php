@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('maternal_surname')->nullable();
             $table->string('email')->nullable();
             $table->timestamps();
+            $table->string('type_contract', 20)->nullable();
         });
     }
 
