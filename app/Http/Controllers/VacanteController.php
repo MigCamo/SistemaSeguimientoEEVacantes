@@ -216,10 +216,14 @@ class VacanteController extends Controller
         $isDeleted = $filtro=="VacantesCerradas";*/
 
         $vacantes = DB::table('educational_experience_vacancies as ev')
-            // Join para obtener la información del período escolar actual
-            ->join('school_periods as sp', function($join) {
-                $join->on('ev.school_period_code', '=', 'sp.code')
-                    ->where('sp.current', '=', 1);
+    // Join para obtener la información del período escolar actual, condicionado por $filtro
+            ->join('school_periods as sp', function($join) use ($filtro) {
+                $join->on('ev.school_period_code', '=', 'sp.code');
+                
+                // Si el filtro es "Vacantes", aplicamos la condición sp.current = 1
+                if ($filtro === 'Vacantes') {
+                    $join->where('sp.current', '=', 1);
+                }
             })
             // Join para obtener la información de la experiencia educativa asociada
             ->join('educational_experiences as ee', 'ev.educational_experience_code', '=', 'ee.code')
