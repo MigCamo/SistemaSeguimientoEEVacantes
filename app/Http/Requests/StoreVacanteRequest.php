@@ -27,6 +27,7 @@ class StoreVacanteRequest extends FormRequest
             'periodo' => 'required|string|min:1',
             'numPrograma' => 'required|string|min:1',
             'numPlaza' => 'required|string|min:1',
+            'numZona' => 'required|string|min:1',
             //'numHoras' => 'required|numeric|min:1',
             'numMateria' => 'required|string|min:1',
             //'nombreMateria' => 'required|string|min:1',
