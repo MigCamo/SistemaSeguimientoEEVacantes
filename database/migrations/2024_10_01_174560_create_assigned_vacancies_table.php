@@ -25,6 +25,7 @@ return new class extends Migration
             $table->date('openingDate');
             $table->date('closingDate');
             $table->timestamps();
+            $table->string('type_contract', 20)->nullable();
 
             $table->foreign('ee_vacancy_code')->references('nrc')->on('educational_experience_vacancies')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('lecturer_code')->references('staff_number')->on('lecturers')->onDelete('cascade')->onUpdate('cascade');

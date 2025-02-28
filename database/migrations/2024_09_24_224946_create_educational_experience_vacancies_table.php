@@ -22,6 +22,9 @@ return new class extends Migration
             $table->string('educational_program_code');
             $table->string('class');
             $table->string('subGroup');
+            $table->string('numPlaza', 10)->nullable();
+            $table->longBlob('content')->nullable();
+            $table->string('educational_program_code', 10);
             $table->timestamps();
 
             $table->foreign('school_period_code')->references('code')->on('school_periods')->onDelete('cascade')->onUpdate('cascade');

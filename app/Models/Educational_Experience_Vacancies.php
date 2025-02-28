@@ -25,6 +25,8 @@ class Educational_Experience_Vacancies extends Model
         'educational_experience_code',
         'class',
         'subGroup',
+        'numPlaza',
+        'content',
     ];
 
     // Relaciones con otros modelos
@@ -48,6 +50,10 @@ class Educational_Experience_Vacancies extends Model
         return $this->belongsTo(EducationalExperience::class, 'educational_experience_code', 'code');
     }
 
+    public function educationalProgram()
+    {
+        return $this->belongsTo(EducationalProgram::class, 'educational_program_code', 'program_code');
+    }
     // Puedes añadir otras relaciones, scopes o métodos específicos si los necesitas
 }
 
