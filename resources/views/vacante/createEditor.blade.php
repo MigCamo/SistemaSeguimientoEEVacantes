@@ -159,9 +159,10 @@
                                         <label for="tipoContratacion" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Tipo de Contratación</label>
                                         <select  id="tipoContratacion" name="tipoContratacion" class="estiloSelect">
                                             <option value="">Selecciona el tipo de contratación</option>
-                                            <option value="IOD">Planta</option>
+                                            <option value="Planta">Planta</option>
                                             <option value="IOD">Contratación IOD</option>
                                             <option value="IPP">Contratación IPP</option>
+                                            <option value="IPPL">Contratación IPPL</option>
                                         </select>
                                     </div>
 

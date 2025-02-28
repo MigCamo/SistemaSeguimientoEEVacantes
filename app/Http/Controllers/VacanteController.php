@@ -346,6 +346,7 @@ class VacanteController extends Controller
             $vacante->nrc = $request->nrc;
             $vacante->class = $request->grupo;
             $vacante->subGroup = $request->subgrupo;
+            $vacante->numPlaza = $request->numPlaza;
             $vacante->save();
 
             // 2. Crear la vacante asignada en Assigned_Vacancy
@@ -455,15 +456,43 @@ class VacanteController extends Controller
         $vacante = Educational_Experience_Vacancies::findOrFail($id);
         $vacanteAsignada = DB::table('assigned_vacancies')->where('ee_vacancy_code', '=', $vacante->nrc)->first();
 
-        $docenteSeleccionado = DB::table('lecturers')->join('assigned_vacancies', 'assigned_vacancies.lecturer_code', '=', 'lecturers.staff_number')->where('assigned_vacancies.ee_vacancy_code', $vacante->nrc)->first();
-        $listaDocentes = DB::table('lecturers')->where('staff_number', '!=', $docenteSeleccionado->staff_number)->get();
+        $docenteSeleccionado = DB::table('lecturers')
+            ->join('assigned_vacancies', 'assigned_vacancies.lecturer_code', '=', 'lecturers.staff_number')
+            ->where('assigned_vacancies.ee_vacancy_code', $vacante->nrc)
+            ->first();
+
+        $listaDocentes = DB::table('lecturers');
+
+        if ($docenteSeleccionado) {
+            $listaDocentes = $listaDocentes->where('staff_number', '!=', $docenteSeleccionado->staff_number);
+        }
+
+        $listaDocentes = $listaDocentes->get();
         $motivoSeleccionado = DB::table('reasons')->join('assigned_vacancies', 'assigned_vacancies.reason_code', '=', 'reasons.code')->where('assigned_vacancies.ee_vacancy_code', $vacante->nrc)->first();
-        $listaMotivos = DB::table('reasons')->where('reasons.code', '!=', $motivoSeleccionado->code)->get();
+        $listaMotivos = DB::table('reasons');
+
+        if (!is_null($motivoSeleccionado)) {
+            $listaMotivos = $listaMotivos->where('reasons.code', '!=', $motivoSeleccionado->code);
+        }
+
+        $listaMotivos = $listaMotivos->get();
         $listaExperienciasEducativas = EducationalExperience::all();
         $nombreExperienciaEducativa = DB::table('educational_experiences')->where('code', '=', $vacante->educational_experience_code)->first();
         $listaPeriodos = SchoolPeriod::all()->where('current', '=', '1');
-        $asignacion = DB::table('type_asignations')->where('id', $vacanteAsignada->type_asignation_code)->first();
-        $listaTiposAsignacion = DB::table('type_asignations')->where('id', '!=', $vacanteAsignada->type_asignation_code)->get();
+        $asignacion = null;
+
+        if (!is_null($vacanteAsignada)) {
+            $asignacion = DB::table('type_asignations')
+                ->where('id', $vacanteAsignada->type_asignation_code)
+                ->first();
+        }
+        $listaTiposAsignacion = DB::table('type_asignations');
+
+        if (!is_null($vacanteAsignada)) {
+            $listaTiposAsignacion = $listaTiposAsignacion->where('id', '!=', $vacanteAsignada->type_asignation_code);
+        }
+
+        $listaTiposAsignacion = $listaTiposAsignacion->get();
         $periodoAsignado = DB::table('school_periods')->where('code', $vacante->school_period_code)->first();
         $zonas = Region::where('code', '!=', $vacante->region_code)->get();
         $historicoDocentes = DB::table('historico_docentes')->where('vacanteID', $vacante->nrc)->get();
@@ -572,6 +601,7 @@ class VacanteController extends Controller
             $vacante->nrc = $request->nrc;
             $vacante->class = $request->grupo;
             $vacante->subGroup = $request->subGrupo;
+            $vacante->numPlaza = $request->numPlaza;
             $vacante->save();    
             
             DB::table('assigned_vacancies')
