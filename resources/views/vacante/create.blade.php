@@ -90,10 +90,9 @@
                                         <select  id="periodo" name="periodo" class="estiloSelect" required>
                                         <option value="">Selecciona el periodo</option>
                                             @foreach ($periodos as $data)
-                                                @if(session('data'))
-                                                    @php $data = session('data'); @endphp
-                                                    <option value="{{$data->nPeriodo}}-{{$data->clavePeriodo}}"></option>
-                                                @endif
+                                                <option value="{{$data->code}}">
+                                                    {{$data->period_number}}-{{$data->code}}-{{$data->description}}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -111,20 +110,20 @@
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
                                         <label for="grupo" class="labelForms">NRC</label>
-                                        <input type="text" name="grupo" id="grupo" class="inputForms"
+                                        <input type="text" name="nrc" id="nrc" class="inputForms"
                                                placeholder=""
                                                required>
                                     </div>
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                        <label for="numPlaza" class="labelForms">Número de plaza</label>
-                                        <input type="number" name="numPlaza" id="numPlaza" class="inputForms"
+                                        <label for="grupo" class="labelForms">Grupo</label>
+                                        <input type="number" name="grupo" id="grupo" class="inputForms"
                                                placeholder="Ej. 1523" required>
                                     </div>
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                        <label for="plan" class="labelForms">Plan</label>
-                                        <input type="number" name="plan" id="plan" class="inputForms" placeholder="Ej. ">
+                                        <label for="plan" class="labelForms">Subgrupo</label>
+                                        <input type="number" name="subgrupo" id="subgrupo" class="inputForms" placeholder="Ej. ">
                                     </div>
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
@@ -132,10 +131,9 @@
                                         <select  id="numMotivo" name="numMotivo" class="estiloSelect" required>
                                             <option value="">Selecciona el motivo</option>
                                             @foreach ($motivos as $data)
-                                                @if(session('data'))
-                                                    @php $data = session('data'); @endphp
-                                                    <option value="{{$data->numeroMotivo}}-{{$data->nombre}}"></option>
-                                                @endif
+                                                <option value="{{$data->code}}">
+                                                    {{$data->code}}-{{$data->name}}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -147,6 +145,7 @@
                                             <option value="Planta">Planta</option>
                                             <option value="IOD">Contratación IOD</option>
                                             <option value="IPP">Contratación IPP</option>
+                                            <option value="IPPL">Contratación IPPL</option>
                                         </select>
                                     </div>
 
@@ -156,15 +155,33 @@
                                         <select  id="tipoAsignacion" name="tipoAsignacion" class="estiloSelect">
                                             <option value="">Selecciona el tipo de asignación</option>
                                             @foreach ($tiposAsignacion as $data)
-                                                @if(session('data'))
-                                                    @php $data = session('data'); @endphp
-                                                    <option value="{{$data->tipo}}-{{$data->tipo}}"></option>
-                                                @endif
+                                                <option value="{{$data->id}}">
+                                                    {{$data->id}}-{{$data->type_asignation}}
+                                                </option>                                            @endforeach
+                                        </select>
+                                    </div>
+
+
+                                    <div class="col-span-6 sm:col-span-2 lg:col-span-2">
+                                        <label for="grupo" class="labelForms">Número de plaza</label>
+                                        <input type="text" name="numPlaza" id="numPlaza" class="inputForms"
+                                               placeholder=""
+                                               required>
+                                    </div>
+
+
+                                    <div class="col-span-6">
+                                        <label for="numPersonalDocente" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Docente</label>
+                                        <select  id="numPersonalDocente" name="numPersonalDocente" class="estiloSelect">
+                                            <option value="">Selecciona al docente</option>
+                                            @foreach ($docentes as $data)
+                                                <option value="{{$data->staff_number}}">
+                                                    {{$data->names}} {{$data->lastname}} {{$data->maternal_surname}}-{{$data->staff_number}}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
 
-                                    @include('vacante.filterNombreDocenteCreate')
 
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">

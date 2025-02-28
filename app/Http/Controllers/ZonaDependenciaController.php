@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreZonaDependenciaRequest;
 use App\Http\Requests\UpdateZonaDependenciaRequest;
 use App\Models\Dependencia;
+use App\Models\Educational_Experience_Vacancies;
 use App\Models\Periodo;
+use App\Models\Region;
+use App\Models\Regions_Departaments;
+use App\Models\SchoolPeriod;
 use App\Models\Vacante;
 use Illuminate\Http\Request;
 use App\Models\Zona_Dependencia;
@@ -29,13 +33,11 @@ class ZonaDependenciaController extends Controller
         $radioButton = $request->get('tipo');
 
         //https://youtu.be/XeYd_kYkUJE
-        $dependencias = DB::table('zona__dependencias')
-            ->select('id','id_zona','nombre_zona','clave_dependencia','nombre_dependencia')
-            ->where('id_zona','LIKE','%'.$search.'%')
-            ->orWhere('nombre_zona','LIKE','%'.$search.'%')
-            ->orWhere('clave_dependencia','LIKE','%'.$search.'%')
-            ->orWhere('nombre_dependencia','LIKE','%'.$search.'%')
-            ->orderBy('id_zona','asc')
+        $dependencias = DB::table('departaments')
+            ->select('code','name')
+            ->where('code','LIKE','%'.$search.'%')
+            ->orWhere('name','LIKE','%'.$search.'%')
+            ->orderBy('code','asc')
             ->paginate(10)
             ->withQueryString()
             ;
@@ -109,7 +111,7 @@ class ZonaDependenciaController extends Controller
      */
     public function create()
     {
-        $listaZonas = Zona::all();
+        $listaZonas = Region::all();
 
         $user = auth()->user();
 
@@ -128,7 +130,7 @@ class ZonaDependenciaController extends Controller
      */
     public function store(StoreZonaDependenciaRequest $request)
     {
-        $dependencia = new Zona_Dependencia();
+        $dependencia = new Regions_Departaments();
 
         $zonaCompleta = $request->id_zona;
         $zonaPartes = explode("~",$zonaCompleta);
@@ -156,7 +158,7 @@ class ZonaDependenciaController extends Controller
      * @param  \App\Models\Zona_Dependencia  $dependencia
      * @return \Illuminate\Http\Response
      */
-    public function show(Zona_Dependencia $dependencia)
+    public function show(Regions_Departaments $dependencia)
     {
         //
     }
@@ -170,11 +172,11 @@ class ZonaDependenciaController extends Controller
     public function edit($id)
     {
         //Obtener nombre de la zona
-        $nombreZona = Zona_Dependencia::where('id',$id)->value('nombre_zona');
+        $nombreZona = Regions_Departaments::where('id',$id)->value('nombre_zona');
 
 
-        $dependencia = Zona_Dependencia::where('id',$id)->firstOrFail();
-        $listaZonas = Zona::all();
+        $dependencia = Regions_Departaments::where('id',$id)->firstOrFail();
+        $listaZonas = Region::all();
         return view('zonaDependencia.edit', ['dependencia' => $dependencia,
                                                   'zonas' => $listaZonas,
                                                   'nombreZona' => $nombreZona
@@ -191,7 +193,7 @@ class ZonaDependenciaController extends Controller
      */
     public function update(UpdateZonaDependenciaRequest $request, $id)
     {
-        $dependencia = Zona_Dependencia::findOrFail($id);
+        $dependencia = Regions_Departaments::findOrFail($id);
 
         $zonaCompleta = $request->id_zona;
         $zonaPartes = explode("~",$zonaCompleta);
@@ -224,10 +226,10 @@ class ZonaDependenciaController extends Controller
      */
     public function destroy($id)
     {
-        $claveDependenciaSeleccionada = Zona_Dependencia::where('id',$id)->value('clave_dependencia');
+        $claveDependenciaSeleccionada = Regions_Departaments::where('id',$id)->value('clave_dependencia');
         $dependenciaEliminarPrograma = DB::table('zona__dependencia__programas')->where("clave_dependencia",$claveDependenciaSeleccionada)->delete();
 
-        $dependencia = Zona_Dependencia::findOrFail($id);
+        $dependencia = Regions_Departaments::findOrFail($id);
         $dependencia->delete();
 
         $user = Auth::user();
@@ -240,7 +242,7 @@ class ZonaDependenciaController extends Controller
 
     public function fetchDependencia(Request $request)
     {
-        $data['dependencias'] = Zona_Dependencia::where("id_zona", $request->id_zona)
+        $data['dependencias'] = Regions_Departaments::where("id_zona", $request->id_zona)
                                 ->get(["clave_dependencia","nombre_dependencia"]);
 
         return response()->json($data);
@@ -248,7 +250,7 @@ class ZonaDependenciaController extends Controller
 
     public function fetchIdNombreZona(Request $request)
     {
-        $data['idNombreZona'] = Zona::where("id", $request->idZona)
+        $data['idNombreZona'] = Region::where("id", $request->idZona)
             ->get(["id","nombre"]);
 
         return response()->json($data);
@@ -261,9 +263,9 @@ class ZonaDependenciaController extends Controller
         $data = file_get_contents($path);
         $uv = 'data:image/' . $type . ';base64,' . base64_encode($data);
 
-        $periodoActual = Periodo::where('actual','1')->value('clavePeriodo');
+        $periodoActual = SchoolPeriod::where('actual','1')->value('clavePeriodo');
 
-        $listaVacantes = Vacante::where('numDependencia',$id)
+        $listaVacantes = Educational_Experience_Vacancies::where('numDependencia',$id)
             ->where(function ($query) use ($periodoActual){
             $query->whereNull('deleted_at')
                 ->where('clavePeriodo',$periodoActual);
@@ -274,7 +276,7 @@ class ZonaDependenciaController extends Controller
             })
             ->get();
 
-        $dependencia = Zona_Dependencia::where('clave_dependencia',$id)->value('nombre_dependencia');
+        $dependencia = Regions_Departaments::where('clave_dependencia',$id)->value('nombre_dependencia');
 
         $pdf = Pdf::loadView('pdf.templateVacantesPorDependencia', compact(
                 'listaVacantes','dependencia', 'uv')

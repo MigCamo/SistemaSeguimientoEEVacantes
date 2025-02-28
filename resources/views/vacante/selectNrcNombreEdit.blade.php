@@ -1,10 +1,10 @@
 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-    <label for="numMateria-dropdown" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">NRC</label>
+    <label for="numMateria-dropdown" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Experiencia educativa</label>
     <select  id="numMateria-dropdown" name="numMateria" class="estiloSelect">
-            <option value="{{$vacante->numMateria}}~{{$vacante->nombreMateria}}">{{$vacante->numMateria}}~{{$vacante->nombreMateria}}</option>
+            <option value="{{$nombreExperienciaEducativa->code}}">{{$vacante->nrc}}~{{$nombreExperienciaEducativa->name}}</option>
             @foreach ($experienciasEducativas as $data)
-                <option value="{{$data->nrc}}~{{$data->nombre}}">
-                    {{$data->nrc}}~{{$data->nombre}}
+                <option value="{{$data->code}}">
+                    {{$data->code}}~{{$data->name}}
                 </option>
             @endforeach
     </select>
@@ -13,7 +13,7 @@
 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
     <label for="numHoras-dropdown" class="block mb-2 text-sm  text-gray-900 dark:text-gray-400" >Número de horas</label>
     <select id="numHoras-dropdown" class="estiloSelect" name="numHoras">
-        <option value="{{$vacante->numHoras}}">{{$vacante->numHoras}}</option>
+        <option value="{{$nombreExperienciaEducativa->hours}}">{{$nombreExperienciaEducativa->hours}}</option>
     </select>
 </div>
 

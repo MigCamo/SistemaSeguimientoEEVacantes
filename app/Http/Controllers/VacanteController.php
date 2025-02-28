@@ -5,18 +5,22 @@ namespace App\Http\Controllers;
 use App\Http\Requests\IndexVacanteRequest;
 use App\Http\Requests\StoreDocenteRequest;
 use App\Http\Requests\StoreExperienciaEducativaRequest;
+use App\Http\Requests\StoreLecturerRequest;
 use App\Models\Area;
 use App\Models\Docente;
 use App\Models\HistoricoDocente;
 use App\Models\Periodo;
-use App\Models\Regions_Educational_Program;
 use App\Models\SearchVacante;
 use App\Models\TipoAsignacion;
 use App\Models\Vacante;
 use App\Models\Motivo;
 use App\Models\ExperienciaEducativa;
 use App\Http\Requests\StoreVacanteRequest;
+use App\Models\AssignedVacancy;
+use App\Models\Departament;
+use App\Models\Educational_Experience_Vacancies;
 use App\Models\EducationalExperience;
+use App\Models\EducationalProgram;
 use App\Models\Lecturer;
 use App\Models\Reason;
 use App\Models\Region;
@@ -37,9 +41,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
-use App\Models\Educational_Experience_Vacancies;
-
+use Carbon\Carbon;
 
 
 class VacanteController extends Controller
@@ -54,6 +56,7 @@ class VacanteController extends Controller
     public function index(IndexVacanteRequest $request)
     {
         $user = auth()->user()->id;
+        $userSelectDependencia = auth()->user()->dependencia;
         $vacantes = [];
         $countVacantes = 0;
 
@@ -68,76 +71,75 @@ class VacanteController extends Controller
 
         $programasEducUsuario = [];
         // Si el rol es admin
-        if ($userRol) {
-            // No necesitamos buscar en SearchVacante, solo configuramos los filtros
-            $zona = $request->input('zona', ''); // Zona seleccionada (puedes obtenerla del request o asignar una predeterminada)
-            $dependencia = $request->input('dependencia', ''); // Dependencia seleccionada
-            $programa = $request->input('programa', ''); // Programa educativo seleccionado
-            $filtro = $request->input('filtro', ''); // Filtro de vacantes
-            $busqueda = $request->input('busqueda', ''); // Término de búsqueda
+        if($userRol){
 
-            $isDeleted = $filtro == "VacantesCerradas";
+            $vac= Educational_Experience_Vacancies::all();
+                $programasEducUsuario = [];
+                $zona = "";
+                $dependencia = "";
+                $programa = "";
+                $filtro = "";
+                $busqueda = "";
+                $isDeleted = false;
+                $vacantes = DB::table('educational_experience_vacancies as ev')
+                    // Join para obtener la información del período escolar actual
+                    ->join('school_periods as sp', function($join) {
+                        $join->on('ev.school_period_code', '=', 'sp.code')
+                            ->where('sp.current', '=', 1);
+                    })
+                    // Join para obtener la información de la experiencia educativa asociada
+                    ->join('educational_experiences as ee', 'ev.educational_experience_code', '=', 'ee.code')
+                    ->leftJoin('assigned_vacancies as av', 'ev.nrc', '=', 'av.ee_vacancy_code')
+                    // Seleccionar columnas de ambas tablas, puedes ajustar los campos según tus necesidades
+                    ->select('ev.*', 'ee.*', 'sp.code as period_code', 'sp.current', 'av.reason_code', 'av.type_asignation_code', 'av.lecturer_code', 'av.*')
+                    ->paginate(15);
 
-            // Filtrado de vacantes
-            $vacantes = DB::table('educational_experience_vacancies')
-                ->join('school_periods', function ($join) {
-                    $join->on('educational_experience_vacancies.school_period_code', '=', 'school_periods.code')
-                        ->where('school_periods.current', "=", 1);
-                })
-                ->when($zona, function ($query) use ($zona) {
-                    return $query->where('educational_experience_vacancies.zona', '=', $zona);
-                })
-                ->when($dependencia, function ($query) use ($dependencia) {
-                    return $query->where('educational_experience_vacancies.dependencia', '=', $dependencia);
-                })
-                ->when($programa, function ($query) use ($programa) {
-                    return $query->where('educational_experience_vacancies.programa', '=', $programa);
-                })
-                ->when($filtro, function ($query) use ($filtro) {
-                    if ($filtro == "VacantesCerradas") {
-                        return $query->where('educational_experience_vacancies.status', '=', 'cerrada');
-                    }
-                    return $query->where('educational_experience_vacancies.status', '!=', 'cerrada');
-                })
-                ->when($busqueda, function ($query) use ($busqueda) {
-                    return $query->where('educational_experience_vacancies.nombre', 'like', '%' . $busqueda . '%');
-                })
-                ->paginate(15);
+        }else{
 
-            $countVacantes = $vacantes->total();
-
-            $nombreZona = DB::table('regions')->where('code', $zona)->value('name');
-            $nombreDependencia = DB::table('departaments')->where('code', $dependencia)->value('name');
-            $nombrePrograma = DB::table('educational_programs')->where('program_code', $programa)->value('name');
-
-            // Obtén las dependencias y programas relacionados con la zona
-            $listaDependenciasSelect = Regions_Departaments::where('id', $zona)->get();
-            $listaProgramasSelect = Regions_Departament_Programs::where('id', $dependencia)->get();
-        } else {
-            // Si el usuario no es admin, obtener los datos del usuario
-            $zona = auth()->user()->zona;
-            $dependencia = auth()->user()->dependencia;
-
-            // Obtener los programas educativos del usuario
-            $programasEducUsuario = DB::table('regions_departament_programs')
-                ->where('region_code', '=', $zona)
-                ->where('departament_code', '=', $dependencia)
+            $vac = DB::table('educational_experience_vacancies')
+                ->where('departament_code', '=', $userSelectDependencia)
                 ->get();
 
-            $vacantes = DB::table('educational_experience_vacancies')
-                ->join('school_periods', function ($join) use ($zona, $dependencia) {
-                    $join->on('educational_experience_vacancies.school_period_code', '=', 'school_periods.code')
-                        ->where('school_periods.current', "=", 1)
-                        ->where('educational_experience_vacancies.zona', '=', $zona)
-                        ->where('educational_experience_vacancies.dependencia', '=', $dependencia);
-                })
-                ->paginate(10);
+            $user = auth()->user();
+            $zona = $user->zona;
+            $dependencia = $user->dependencia;
+            $isDeleted = false;
+            $programasEducUsuario = DB::table('zona__dependencia__programas')
+                ->where('id_zona','=',$zona)
+                ->where('clave_dependencia','=',$dependencia)
+                ->get();
 
-            $countVacantes = $vacantes->total();
+            if (count($vac) === 0 ){
 
-            // Si el usuario tiene datos de un programa, los obtenemos
-            $programa = $request->input('programa', '');
-            $nombrePrograma = DB::table('zona__dependencia__programas')->where('clave_programa', $programa)->value('nombre_programa');
+                $programa = "";
+                $filtro = "";
+                $busqueda = "";
+                $isDeleted = false;
+
+                $vacantes = DB::table('vacantes')
+                    ->join('periodos',function($join) use ($zona,$dependencia){
+                        $join->on('vacantes.clavePeriodo','=','periodos.clavePeriodo')
+                            ->where('periodos.actual',"=",1)
+                            ->whereNull('deleted_at')
+                            ->where('numZona','=',$zona)
+                            ->where('numDependencia','=',$dependencia);
+                    })
+                    ->paginate('10')
+                ;
+
+            }else{
+                /** 
+                $programa = $userSelect->clave_programa;
+                $filtro = $userSelect->filtro;
+                $busqueda = $userSelect->busqueda;
+                $isDeleted = $filtro=="VacantesCerradas";
+
+                $vacantes = $this->busquedaVacante($zona,$dependencia,$programa,$filtro,$busqueda);
+                $countVacantes = $vacantes->count();
+
+                $nombrePrograma = DB::table('zona__dependencia__programas')->where('clave_programa',$programa)->value('nombre_programa');*/
+            }
+
         }
 
         // Zonas disponibles para mostrar
@@ -176,34 +178,74 @@ class VacanteController extends Controller
     public function search(Request $request){
 
         $user = auth()->user()->id;
-        //$idUsuario = $user->id;
         $zona = $request->get('zona');
         $dependencia = $request->get('dependencia');
         $programa = $request->get('programa');
         $filtro = $request->get('filtro');
         $busqueda = $request->get('search');
 
-        $nombreZona = DB::table('regions')->where('id',$zona)->value('name');
-        $nombreDependencia = DB::table('zona__dependencias')->where('clave_dependencia',$dependencia)->value('nombre_dependencia');
-        $nombrePrograma = DB::table('zona__dependencia__programas')->where('clave_programa',$programa)->value('nombre_programa');
+        $nombreZona = DB::table('regions')->where('code',$zona)->value('name');
 
-        $listaDependenciasSelect = Regions_Departaments::all()->where('id_zona',$zona);
-        $listaProgramasSelect = Regions_Departament_Programs::all()->where('clave_dependencia',$dependencia);
+        $nombreDependencia = DB::table('departaments')
+            ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
+            ->where('regions_departaments.departament_code', $dependencia)
+            ->value('departaments.name');
+
+        //$nombrePrograma = DB::table('zona__dependencia__programas')->where('clave_programa',$programa)->value('nombre_programa');
+        $nombrePrograma = DB::table('educational_programs')
+            ->join('regions_educational_programs', 'educational_programs.program_code', '=', 'regions_educational_programs.educational_program_code')
+            ->where('regions_educational_programs.educational_program_code', $programa)
+            ->get();
+
+
+        $listaDependenciasSelect = DB::table('departaments')
+            ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
+            ->where('regions_departaments.region_code', $zona)
+            ->get();
+        
+        //$listaProgramasSelect = Regions_Departament_Programs::all()->where('clave_dependencia',$dependencia);
+
+        $listaProgramasSelect = DB::table('educational_programs')
+            ->join('regions_educational_programs', 'educational_programs.program_code', '=', 'regions_educational_programs.educational_program_code')
+            ->where('regions_educational_programs.departament_code', $dependencia)
+            ->get();
 
         $zonas = Region::all();
 
-        event(new SelectVacanteIndex($user,$zona,$dependencia,$programa,$filtro,$busqueda));
-        $isDeleted = $filtro=="VacantesCerradas";
-        $vacantes = $this->busquedaVacante($zona,$dependencia,$programa,$filtro,$busqueda);
+        /*event(new SelectVacanteIndex($user,$zona,$dependencia,$programa,$filtro,$busqueda));
+        $isDeleted = $filtro=="VacantesCerradas";*/
+
+        $vacantes = DB::table('educational_experience_vacancies as ev')
+    // Join para obtener la información del período escolar actual, condicionado por $filtro
+            ->join('school_periods as sp', function($join) use ($filtro) {
+                $join->on('ev.school_period_code', '=', 'sp.code');
+                
+                // Si el filtro es "Vacantes", aplicamos la condición sp.current = 1
+                if ($filtro === 'Vacantes') {
+                    $join->where('sp.current', '=', 1);
+                }
+            })
+            // Join para obtener la información de la experiencia educativa asociada
+            ->join('educational_experiences as ee', 'ev.educational_experience_code', '=', 'ee.code')
+            ->leftJoin('assigned_vacancies as av', 'ev.nrc', '=', 'av.ee_vacancy_code')
+            ->join('Regions as r', 'ev.region_code', '=', 'r.code')
+            ->join('departaments as d', 'ev.departament_code', '=', 'd.code')
+            ->join('Educational_Programs as ep', 'ev.educational_program_code', '=', 'ep.program_code')
+            ->where('r.code', $zona)
+            ->where('d.code', $dependencia)
+            ->where('ep.program_code', $programa)
+            // Seleccionar columnas de ambas tablas, puedes ajustar los campos según tus necesidades
+            ->select('ev.*', 'ee.*', 'sp.code as period_code', 'sp.current', 'av.reason_code', 'av.type_asignation_code', 'av.lecturer_code', 'av.*')
+            ->get();
         $countVacantes = $vacantes->count();
 
-        $programasEducUsuario = DB::table('regions_departament_programs')
+        $programasEducUsuario = DB::table('regions_educational_programs')
                 ->where('region_code', '=', $zona)
                 ->where('departament_code', '=', $dependencia)
                 ->get();
 
         return view('vacante.index', compact(
-                'vacantes','zona','zonas','dependencia','programa','filtro','isDeleted','countVacantes',
+                'vacantes','zona','zonas','dependencia','programa','filtro','countVacantes',
                 'programasEducUsuario', 'nombreZona', 'nombreDependencia', 'nombrePrograma', 'listaDependenciasSelect',
                 'listaProgramasSelect'
             )
@@ -238,6 +280,7 @@ class VacanteController extends Controller
         $listaExperienciasEducativas = EducationalExperience::all();
         $listaPeriodos = SchoolPeriod::all();
         $listaTiposAsignacion = TypeAsignation::all();
+        
 
         $userAdmin = Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin');
 
@@ -291,106 +334,46 @@ class VacanteController extends Controller
      * @param  \App\Http\Requests\StoreVacanteRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreVacanteRequest $request)
+    public function store(Request $request)
     {
-        $docenteCompleto = $request->numPersonalDocente;
-        /*$docentePartes = explode("-",$docenteCompleto);
-        $nombreDocente= $docentePartes[0];
-        $numDocente = $docentePartes[1] ;*/
+        DB::beginTransaction(); // Inicia la transacción
 
-        if (empty($docenteCompleto)){
-            $numDocente= "";
-            $nombreDocente= "";
-        }else{
-            $docentePartes = explode("-",$docenteCompleto);
-            $nombreDocente= $docentePartes[0];
-            $numDocente = $docentePartes[1];
+        try {
+            // 1. Crear la vacante en EE_Vacancy
+            $vacante = new Educational_Experience_Vacancies();
+            $vacante->school_period_code = $request->periodo;
+            $vacante->region_code = $request->numZona;
+            $vacante->departament_code = $request->numDependencia;
+            $vacante->area_code = $request->grupo;
+            $vacante->educational_program_code = $request->numPrograma;
+            $vacante->educational_experience_code = $request->numMateria;
+            $vacante->nrc = $request->nrc;
+            $vacante->class = $request->grupo;
+            $vacante->subGroup = $request->subgrupo;
+            $vacante->numPlaza = $request->numPlaza;
+            $vacante->save();
+
+            // 2. Crear la vacante asignada en Assigned_Vacancy
+            $assignedVacancy = new AssignedVacancy();
+            $assignedVacancy->ee_vacancy_code = $vacante->nrc; // Se usa el NRC generado
+            $assignedVacancy->lecturer_code = $request->numPersonalDocente;
+            $assignedVacancy->reason_code = $request->numMotivo;
+            $assignedVacancy->type_asignation_code = $request->tipoAsignacion;
+            $assignedVacancy->noticeDate = Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d');
+            $assignedVacancy->assignmentDate = Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d');
+            $assignedVacancy->openingDate = Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d');
+            $assignedVacancy->closingDate = Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d');
+            $assignedVacancy->notes = $request->observaciones ?? '';
+            $assignedVacancy->save();
+
+            DB::commit(); // Confirma la transacción si todo sale bien
+
+            return redirect()->route('vacante.index')->with('success', 'Vacante creada correctamente');
+        } catch (\Exception $e) {
+            dd("error", $e);
+            DB::rollback();
+            return redirect()->route('vacante.index')->with('error', 'Error al crear la vacante: ' . $e->getMessage());
         }
-
-        /*
-        if(empty($numDocente)){
-            $numDocente= "";
-        }
-        if(empty($nombreDocente)){
-            $nombreDocente= "";
-        }
-        */
-
-        $periodoCompleto = $request->periodo;
-        $periodoPartes = explode("-",$periodoCompleto);
-
-        $experienciaEducativaCompleta = $request->numMateria;
-        $experienciaEducativaPartes = explode("~",$experienciaEducativaCompleta);
-
-        $vacante = new Vacante();
-
-        $vacante->periodo=$periodoPartes[0];
-        $vacante->clavePeriodo=$periodoPartes[1];
-
-        $vacante->numZona=$request->numZona;
-        $vacante->numDependencia=$request->numDependencia;
-        $vacante->numArea=3;
-        $vacante->numPrograma=$request->numPrograma;
-        $vacante->numPlaza=$request->numPlaza;
-        $vacante->numHoras=$request->numHoras;
-        $vacante->numMateria=$experienciaEducativaPartes[0];
-        $vacante->nombreMateria=$experienciaEducativaPartes[1];
-        $vacante->grupo=$request->grupo;
-        //$vacante->subGrupo=$request->subGrupo;
-        $vacante->subGrupo=0;
-        $vacante->numMotivo=$request->numMotivo;
-        $vacante->tipoContratacion=$request->tipoContratacion;
-        $vacante->tipoAsignacion=$request->tipoAsignacion;
-        $vacante->nombreDocente=$nombreDocente;
-        $vacante->numPersonalDocente=$numDocente;
-        $vacante->plan=$request->plan;
-        $vacante->observaciones=$request->observaciones;
-        $vacante->fechaAviso=$request->fechaAviso;
-        $vacante->fechaAsignacion=$request->fechaAsignacion;
-        $vacante->fechaAsignacion=$request->fechaAsignacion;
-        $vacante->fechaApertura=$request->fechaApertura;
-        $vacante->fechaCierre=$request->fechaCierre;
-        $vacante->fechaRenuncia=$request->fechaRenuncia;
-
-        $lastID = DB::select("SELECT IDENT_CURRENT('educational_experience_vacancies')");
-        $myArr = get_object_vars($lastID[0]);
-        $oo = $myArr[""];
-        $ulti = $oo + 1;
-
-        $vacante->archivo = "Inexistente";
-
-        $request->validate([
-            'files' => 'nullable',
-            'files.*' => 'mimes:pdf|max:20480'
-        ]);
-
-        if($request->hasFile('files')){
-            $directory="vac-{$ulti}";
-            $vacante->archivo = "vac-{$ulti}";
-            Storage::makeDirectory($directory);
-            foreach ($request->file('files') as $file){
-                $fileName = time() ."_" . $file->getClientOriginalName();
-                $file->storeAs('/'.$directory.'/', $fileName, 'azure');
-            }
-        }
-
-        $vacante->save();
-
-        if (!empty($request->numHoras) && !empty($request->tipoAsignacion)){
-            event(new OperacionHorasVacante($request->numHoras,$request->numPrograma,$request->tipoContratacion,$request->tipoAsignacion));
-        }
-
-        $user = Auth::user();
-        $data = $request->periodo .  " " . $request->clavePeriodo . " " . $request->numZona . " " . $request->numDependencia . " " . $request->numPlaza
-            . " " . $request->numHoras . " " . $request->numMateria . " " . $request->nombreMateria . " " . $request->grupo
-            . " " . $request->numMotivo . " " . $request->tipoAsignacion . " " . $request->numPersonalDocente . " " . $request->plan
-            . " " . $request->observaciones . " " . " ". $request->fechaAviso . $request->fechaAsignacion . " " . $request->fechaApertura . " " . $request->fechaCierre . " " . $request->fechaRenuncia;
-
-
-
-        event(new LogUserActivity($user,"Creación de Vacante",$data));
-
-        return redirect()->route('vacante.index');
     }
 
     /**
@@ -404,9 +387,9 @@ class VacanteController extends Controller
      * @param  \App\Http\Requests\StoreDocenteRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function storeDocente(StoreDocenteRequest $request){
+    public function storeDocente(StoreLecturerRequest $request){
 
-        $docente = new Docente();
+        $docente = new Lecturer();
         $docente->nPersonal = $request->nPersonal;
         $docente->nombre = $request->nombre;
         $docente->apellidoPaterno = $request->apellidoPaterno;
@@ -436,7 +419,7 @@ class VacanteController extends Controller
      */
     public function storeEe(StoreExperienciaEducativaRequest $request){
 
-        $ee = new ExperienciaEducativa();
+        $ee = new EducationalExperience();
         $ee->numMateria = $request->numMateria;
         //$ee->nrc = $request->nrc;
         $ee->nombre = $request->nombre;
@@ -458,7 +441,7 @@ class VacanteController extends Controller
      * @param  \App\Models\Vacante  $vacante
      * @return \Illuminate\Http\Response
      */
-    public function show(Vacante $vacante)
+    public function show(Educational_Experience_Vacancies $vacante)
     {
         //
     }
@@ -472,64 +455,89 @@ class VacanteController extends Controller
      */
     public function edit($id)
     {
-        $user = auth()->user();
+        $user = auth()->user(); 
 
-        $vacante = Vacante::findOrFail($id);
+        $vacante = Educational_Experience_Vacancies::findOrFail($id);
+        $vacanteAsignada = DB::table('assigned_vacancies')->where('ee_vacancy_code', '=', $vacante->nrc)->first();
 
-        $listaMotivos = Motivo::all();
-        $listaDocentes = Docente::all();
-        $listaExperienciasEducativas = ExperienciaEducativa::all();
-        $listaPeriodos = Periodo::all();
-        $listaTiposAsignacion = TipoAsignacion::all();
+        $docenteSeleccionado = DB::table('lecturers')
+            ->join('assigned_vacancies', 'assigned_vacancies.lecturer_code', '=', 'lecturers.staff_number')
+            ->where('assigned_vacancies.ee_vacancy_code', $vacante->nrc)
+            ->first();
 
-        $zonas = Region::all();
+        $listaDocentes = DB::table('lecturers');
 
+        if ($docenteSeleccionado) {
+            $listaDocentes = $listaDocentes->where('staff_number', '!=', $docenteSeleccionado->staff_number);
+        }
+
+        $listaDocentes = $listaDocentes->get();
+        $motivoSeleccionado = DB::table('reasons')->join('assigned_vacancies', 'assigned_vacancies.reason_code', '=', 'reasons.code')->where('assigned_vacancies.ee_vacancy_code', $vacante->nrc)->first();
+        $listaMotivos = DB::table('reasons');
+
+        if (!is_null($motivoSeleccionado)) {
+            $listaMotivos = $listaMotivos->where('reasons.code', '!=', $motivoSeleccionado->code);
+        }
+
+        $listaMotivos = $listaMotivos->get();
+        $listaExperienciasEducativas = EducationalExperience::all();
+        $nombreExperienciaEducativa = DB::table('educational_experiences')->where('code', '=', $vacante->educational_experience_code)->first();
+        $listaPeriodos = SchoolPeriod::all()->where('current', '=', '1');
+        $asignacion = null;
+
+        if (!is_null($vacanteAsignada)) {
+            $asignacion = DB::table('type_asignations')
+                ->where('id', $vacanteAsignada->type_asignation_code)
+                ->first();
+        }
+        $listaTiposAsignacion = DB::table('type_asignations');
+
+        if (!is_null($vacanteAsignada)) {
+            $listaTiposAsignacion = $listaTiposAsignacion->where('id', '!=', $vacanteAsignada->type_asignation_code);
+        }
+
+        $listaTiposAsignacion = $listaTiposAsignacion->get();
+        $periodoAsignado = DB::table('school_periods')->where('code', $vacante->school_period_code)->first();
+        $zonas = Region::where('code', '!=', $vacante->region_code)->get();
+        $historicoDocentes = DB::table('historico_docentes')->where('vacanteID', $vacante->nrc)->get();
+        $historicoDocentesReciente = DB::table('historico_docentes')
+            ->where('vacanteID', $vacante->nrc)
+            ->orderBy('updated_at', 'desc') // Ordena por fecha de actualización más reciente
+            ->first(); // Recupera solo el primer resultado
         $userAdmin = Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin');
 
         if($userAdmin){
 
             //Obtener nombre de la zona de la vacante
-            $idZonaVacante = DB::table('educational_experience_vacancies')->where('id',$id)->value('numZona');
+            $idZonaVacante = DB::table('educational_experience_vacancies')->where('nrc',$id)->value('region_code');
             $nombreZonaVacante = DB::table('regions')->where('code',$idZonaVacante)->value('name');
 
             //Obtener nombre de la dependencia de la vacante
-            $claveDependenciaVacante = DB::table('educational_experience_vacancies')->where('id',$id)->value('numDependencia');
-            $nombreDependenciaVacante = DB::table('zona__dependencias')->where('clave_dependencia',$claveDependenciaVacante)->value('nombre_dependencia');
+            $claveDependenciaVacante = DB::table('educational_experience_vacancies')->where('nrc',$id)->value('departament_code');
+            $nombreDependenciaVacante = DB::table('departaments')->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')->where('code', $claveDependenciaVacante)->value('name');
             //Lista de dependencias ligadas a la zona al editar vacante para corregir el dropdown
-            $listaDependencias = Regions_Departaments::all()->where('id_zona',$idZonaVacante);
-
+            $listaDependencias = DB::table('departaments')->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')->where('regions_departaments.region_code', '=', $idZonaVacante)->where('departaments.code', '!=', $claveDependenciaVacante)->get();
             //Obtener nombre de programa educativo
-            $programaEducativoSeleccionado = DB::table('educational_experience_vacancies')->where('id',$id)->value('numPrograma');
-            $nombreProgramaEducativo = DB::table('zona__dependencia__programas')->where('clave_programa',$programaEducativoSeleccionado)->value('nombre_programa');
+            $programaEducativoSeleccionado = DB::table('educational_experience_vacancies')->where('nrc',$id)->value('educational_program_code');
+            $nombreProgramaEducativo = DB::table('educational_programs')->join('regions_educational_programs', 'educational_programs.program_code', '=', 'regions_educational_programs.educational_program_code')->where('program_code',$programaEducativoSeleccionado)->value('name');
             //Lista de programas ligados a la dependencia al editar vacante para corregir el dropdown
-            $listaProgramas = Regions_Departament_Programs::all()->where('clave_dependencia',$claveDependenciaVacante);
-
+            $listaProgramas = DB::table('educational_programs')->join('regions_educational_programs', 'educational_programs.program_code', '=', 'regions_educational_programs.educational_program_code')->where('regions_educational_programs.departament_code',$claveDependenciaVacante)->where('educational_programs.program_code', '!=', $programaEducativoSeleccionado)->get();
             //obtener histórico docentes
-            $listaDocentesHistorico = DB::table('historico_docentes')->where('vacanteID',$id)->get();
-
+            $listaDocentesHistorico = Lecturer::all();
+            
             /*
             *Obtener los archivos
             *@link https://www.jhanley.com/blog/laravel-adding-azure-blob-storage/
             */
-            $path = "vac-{$id}";
-            $disk = Storage::disk('azure');
-            $files = $disk->files($path);
-            $filesList = array();
-            foreach ($files as $file){
-                //$filename = "$path/$file";
-                $filename = "$file";
-                $item = array(
-                    'name' => $filename,
-                );
-                array_push($filesList,$item);
-            }
-
 
             return view('vacante.edit', compact('vacante'),
                 ['user' => $user,
                     'motivos' => $listaMotivos,
+                    'motivoSeleccionado' => $motivoSeleccionado,
                     'docentes' => $listaDocentes,
+                    'docenteSeleccionado' => $docenteSeleccionado,
                     'experienciasEducativas' => $listaExperienciasEducativas,
+                    'nombreExperienciaEducativa' => $nombreExperienciaEducativa,
                     'periodos' => $listaPeriodos,
                     'tiposAsignacion' => $listaTiposAsignacion,
                     'nombreProgramaEducativo' => $nombreProgramaEducativo,
@@ -539,7 +547,10 @@ class VacanteController extends Controller
                     'listaDependencias' => $listaDependencias,
                     'listaProgramas' => $listaProgramas,
                     'listaDocentesHistorico' => $listaDocentesHistorico,
-                    'files' => $filesList,
+                    'vacanteAsignada' => $vacanteAsignada,
+                    'periodoAsignado' => $periodoAsignado,
+                    'historicoDocentes' => $historicoDocentes,
+                    'historicoDocentesReciente' => $historicoDocentesReciente,
                 ]);
         }else{
             //Obtener número y nombre de zona
@@ -566,7 +577,7 @@ class VacanteController extends Controller
     public function editRenuncia($id)
     {
         $docente = HistoricoDocente::findOrFail($id);
-        $listaTiposAsignacion = TipoAsignacion::all();
+        $listaTiposAsignacion = TypeAsignation::all();
 
         return view('vacante.editRenuncia', compact('docente','listaTiposAsignacion'));
     }
@@ -580,165 +591,62 @@ class VacanteController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $vacante = Vacante::findOrFail($id);
+        
+        DB::beginTransaction();
 
-        $docenteCompleto = $request->numPersonalDocente;
-        //$docentePartes = explode("-",$docenteCompleto);
-        //$nombreDocente= $docentePartes[0];
-        //$numDocente = $docentePartes[1] ;
-        if (empty($docenteCompleto)){
-            $numDocente= "";
-            $nombreDocente= "";
-        }else{
-            $docentePartes = explode("-",$docenteCompleto);
-            $nombreDocente= $docentePartes[0];
-            $numDocente = $docentePartes[1];
+        try{
+            $vacante = Educational_Experience_Vacancies::findOrFail($id);
+            $vacante->school_period_code = $request->periodo;
+            $vacante->region_code = $request->numZona;
+            $vacante->departament_code = $request->numDependencia;
+            $vacante->area_code = $request->grupo;
+            $vacante->educational_program_code = $request->numPrograma;
+            $vacante->educational_experience_code = $request->numMateria;
+            $vacante->nrc = $request->nrc;
+            $vacante->class = $request->grupo;
+            $vacante->subGroup = $request->subGrupo;
+            $vacante->numPlaza = $request->numPlaza;
+            $vacante->save();    
+            
+            DB::table('assigned_vacancies')
+            ->where('ee_vacancy_code', $vacante->nrc)
+            ->update([
+                'ee_vacancy_code' => $vacante->nrc, // Se usa el NRC generado
+                'lecturer_code' => $request->numPersonalDocente,
+                'reason_code' => $request->numMotivo,
+                'type_asignation_code' => $request->tipoAsignacion,
+                'noticeDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d'),
+                'assignmentDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d'),
+                'openingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d'),
+                'closingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d'),
+                'notes' => $request->observaciones ?? '',
+            ]);
+
+            DB::table('historico_docentes')->insert([
+                'vacanteID' => $vacante->nrc,
+                'nPersonal' => $request->numPersonalDocente,
+                'nombreDocente' => $request->nombre . ' ' . $request->apellidoPaterno . ' ' . $request->apellidoMaterno,
+                'tipoAsignacion' => $request->tipoAsignacion,
+                'fechaAviso' => $request->fechaAviso ? Carbon::createFromFormat('d/m/Y', trim($request->fechaAviso))->format('Y-m-d') : null,
+                'fechaAsignacion' => $request->fechaAsignacion ? Carbon::createFromFormat('d/m/Y', trim($request->fechaAsignacion))->format('Y-m-d') : null,
+                'fechaRenuncia' => $request->fechaRenuncia ? Carbon::createFromFormat('d/m/Y', $request->fechaRenuncia)->format('Y-m-d') : null,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            DB::commit();
+
+            $user = Auth::user();
+            $data = $request->nPersonal ." ". $request->nombre ." ". $request->apellidoPaterno ." ". $request->apellidoMaterno ." ".$request->email;
+            event(new LogUserActivity($user,"Actualización de Vacante ID $id ",$data));
+
+            return redirect()->route('vacante.index')->with('success', 'Vacante editada correctamente');
+
+        } catch (\Exception $e) {
+            dd("error", $e);
+            DB::rollback();
+            return redirect()->route('vacante.index')->with('error', 'Error al crear la vacante: ' . $e->getMessage());
         }
-
-        //comparar docente y fechas actual en la vacante
-        $numPersonalDocenteActual = $vacante->numPersonalDocente;
-        $nombreDocenteActual = $vacante->nombreDocente;
-        $tipoAsignacionActual = $vacante->tipoAsignacion;
-        $fechaAvisoActual = $vacante->fechaAviso;
-        $fechaAsignacionActual = $vacante->fechaAsignacion;
-        $fechaRenunciaActual = $vacante->fechaRenuncia;
-
-        if(empty($numDocente)){
-            $numDocente= "";
-        }
-
-        $zonaCompleta = $request->numZona;
-        $zonaPartes = explode("-",$zonaCompleta);
-
-        $dependenciaCompleta = $request->numDependencia;
-        $dependenciaPartes = explode("-",$dependenciaCompleta);
-
-        $periodoCompleto = $request->periodo;
-        $periodoPartes = explode("-",$periodoCompleto);
-
-        $periodo=$periodoPartes[0];
-        $clavePeriodo=$periodoPartes[1];
-
-        $numZona=$zonaPartes[0];
-        $numDependencia=$dependenciaPartes[0];
-
-        $experienciaEducativaCompleta = $request->numMateria;
-        $experienciaEducativaPartes = explode("~",$experienciaEducativaCompleta);
-
-        $numArea=3;
-        $numPrograma=$request->numPrograma;
-        $numPlaza=$request->numPlaza;
-        $numHoras=$request->numHoras;
-        $numMateria=$experienciaEducativaPartes[0];
-        $nombreMateria=$experienciaEducativaPartes[1];
-        $grupo=$request->grupo;
-        //$subGrupo=$request->subGrupo;
-        $subGrupo=0;
-        $numMotivo=$request->numMotivo;
-        $tipoContratacion=$request->tipoContratacion;
-        $tipoAsignacion=$request->tipoAsignacion;
-        $numPersonalDocente = $numDocente;
-        $nombreCDocente = $nombreDocente;
-        $plan=$request->plan;
-        $observaciones=$request->observaciones;
-        $fechaAviso=$request->fechaAviso;
-        $fechaAsignacion=$request->fechaAsignacion;
-        $fechaApertura=$request->fechaApertura;
-        $fechaCierre=$request->fechaCierre;
-        $fechaRenuncia=$request->fechaRenuncia;
-        $archivo = $vacante->archivo;
-
-        $request->validate([
-            'files' => 'nullable',
-            'files.*' => 'mimes:pdf|max:20480'
-        ]);
-
-        if($request->hasFile('files')){
-            $directory="vac-{$vacante->id}";
-            $archivo = $directory;
-            foreach ($request->file('files') as $file){
-                $fileName = time() ."_" . $file->getClientOriginalName();
-                $file->storeAs('/'.$directory.'/', $fileName, 'azure');
-            }
-        }
-
-        $vacante->update([
-            'periodo' => $periodo ,
-            'clavePeriodo' => $clavePeriodo ,
-            'numZona' => $numZona ,
-            'numDependencia' => $numDependencia ,
-            'numArea' => 3 ,
-            'numPrograma' => $numPrograma ,
-            'numPlaza' => $numPlaza ,
-            'numHoras' => $numHoras ,
-            'numMateria' => $numMateria ,
-            'nombreMateria' => $nombreMateria ,
-            'grupo' => $grupo ,
-            'subGrupo' => $subGrupo ,
-            'numMotivo' => $numMotivo ,
-            'tipoContratacion' => $tipoContratacion ,
-            'tipoAsignacion' => $tipoAsignacion ,
-            'numPersonalDocente' => $numPersonalDocente ,
-            'nombreDocente' => $nombreCDocente,
-            'plan' => $plan ,
-            'observaciones' => $observaciones ,
-            'fechaAviso' => $fechaAviso ,
-            'fechaAsignacion' => $fechaAsignacion ,
-            'fechaApertura' => $fechaApertura ,
-            'fechaCierre' => $fechaCierre ,
-            'fechaRenuncia' => $fechaRenuncia ,
-            'archivo' => $archivo ,
-        ]);
-
-        if (!empty($numHoras) && !empty($tipoAsignacion) && !empty($tipoContratacion)){
-            event(new OperacionHorasVacante($numHoras,$numPrograma,$tipoContratacion,$tipoAsignacion));
-        }
-
-        //comparar número de personal del docente en vacante y en historico docente
-        $numPersonalDocenteHistorico = DB::table('historico_docentes')->where('nPersonal',$numPersonalDocenteActual)->value('nPersonal');
-
-        //condiciones para indicar que datos se guardaran en cada renuncia, en el caso de que alguno de los campos este vacío
-        if($numPersonalDocenteActual != $numPersonalDocenteHistorico){
-            if($nombreDocenteActual != $nombreCDocente && $nombreDocenteActual != ""){
-                if($fechaAvisoActual != null && $fechaAsignacionActual != null && $fechaRenunciaActual != null){
-                    event(new RenunciaDocente($id,$numPersonalDocenteActual,$nombreDocenteActual,$tipoAsignacionActual,$fechaAvisoActual,$fechaAsignacionActual,$fechaRenunciaActual));
-                }
-                elseif($fechaAvisoActual == null || $fechaAsignacionActual != null && $fechaRenunciaActual != null){
-                    event(new RenunciaDocente($id,$numPersonalDocenteActual,$nombreDocenteActual,$tipoAsignacionActual,"",$fechaAsignacionActual,$fechaRenunciaActual));
-                }
-                elseif($fechaAsignacionActual == null || $fechaAvisoActual != null && $fechaRenunciaActual != null){
-                    event(new RenunciaDocente($id,$numPersonalDocenteActual,$nombreDocenteActual,$tipoAsignacionActual,$fechaAvisoActual,"",$fechaRenunciaActual));
-                }
-                elseif($fechaRenunciaActual == null || $fechaAvisoActual != null && $fechaAsignacionActual != null){
-                    event(new RenunciaDocente($id,$numPersonalDocenteActual,$nombreDocenteActual,$tipoAsignacionActual,$fechaAvisoActual,$fechaAsignacionActual,""));
-                }
-                elseif($fechaAvisoActual == null && $fechaAsignacionActual != null || $fechaRenunciaActual != null){
-                    event(new RenunciaDocente($id,$numPersonalDocenteActual,$nombreDocenteActual,$tipoAsignacionActual,"","",$fechaRenunciaActual));
-                }
-                elseif($fechaAsignacionActual == null && $fechaRenunciaActual != null || $fechaAvisoActual != null){
-                    event(new RenunciaDocente($id,$numPersonalDocenteActual,$nombreDocenteActual,$tipoAsignacionActual,$fechaAvisoActual,"",""));
-                }
-                elseif($fechaRenunciaActual == null && $fechaAvisoActual != null || $fechaAsignacionActual != null){
-                    event(new RenunciaDocente($id,$numPersonalDocenteActual,$nombreDocenteActual,$tipoAsignacionActual,"",$fechaAsignacionActual,""));
-                }
-            }
-        }
-
-        //Obtener el usuario actual
-        $user = Auth::user();
-        //Concatenación de variables para mandarlo al event
-        $data = $request->periodo .  " " . $request->clavePeriodo . " " . $request->numZona . " " .
-                $request->numDependencia . " " . $request->numPlaza . " " . $request->numHoras . " " .
-                str_replace(' ', '',$request->numMateria) . " " . str_replace(' ', '',$request->nombreMateria) . " " . $request->grupo . " " .
-                $request->numMotivo . " " . $request->tipoAsignacion . " " . $request->numPersonalDocente . " " .
-                $request->plan . " " . $request->observaciones . " " . $request->fechaAsignacion . " " .
-                $request->fechaApertura . " " . $request->fechaCierre . " " . $request->fechaRenuncia;
-
-        event(new LogUserActivity($user,"Actualización de Vacante ID $id ",$data));
-
-        return redirect()->route('vacante.index');
-
-
     }
 
     /**
@@ -754,7 +662,7 @@ class VacanteController extends Controller
 
     public function updateE(Request $request, $id)
     {
-        $vacante = Vacante::findOrFail($id);
+        $vacante = Educational_Experience_Vacancies::findOrFail($id);
 
         $observaciones=$request->observaciones;
         $fechaAsignacion=$request->fechaAsignacion;
@@ -819,13 +727,32 @@ class VacanteController extends Controller
      */
     public function destroy($id)
     {
-        $vacante = Vacante::findOrFail($id);
+        $vacante = DB::table('educational_experience_vacancies as ev')
+                    // Join para obtener la información del período escolar actual
+                    ->join('school_periods as sp', function($join) {
+                        $join->on('ev.school_period_code', '=', 'sp.code')
+                            ->where('sp.current', '=', 1);
+                    })
+                    // Join para obtener la información de la experiencia educativa asociada
+                    ->join('educational_experiences as ee', 'ev.educational_experience_code', '=', 'ee.code')
+                    ->leftJoin('assigned_vacancies as av', 'ev.nrc', '=', 'av.ee_vacancy_code')
+                    ->where('ev.nrc', '=', $id)
+                    // Seleccionar columnas de ambas tablas, puedes ajustar los campos según tus necesidades
+                    ->select('ev.*', 'ee.*', 'sp.code as period_code', 'sp.current', 'av.reason_code', 'av.type_asignation_code', 'av.lecturer_code', 'av.*')
+                    ->first();
 
-        $numMotivo = $vacante->numMotivo;
-        $numHoras = $vacante->numHoras;
-        $numPrograma = $vacante->numPrograma;
+        
+                
+        $numMotivo = $vacante->reason_code;
+        $numHoras = $vacante->hours;
+        $numPrograma = $vacante->educational_program_code;
 
-        $vacante->delete();
+        if (!$vacante) {
+            return redirect()->route('vacante.index')->with('error', 'Vacante no encontrada');
+        }
+
+        // Eliminar la vacante usando el Query Builder
+        DB::table('educational_experience_vacancies')->where('nrc', $id)->delete();
 
         $user = Auth::user();
         $data = "Eliminación de Vacante ID: $id";
@@ -855,7 +782,7 @@ class VacanteController extends Controller
         $vacanteArchivo= $archivoPartes[0];
         $idVac = $archivoPartes[1] ;
 
-        $vacante = Vacante::findOrFail($idVac);
+        $vacante = Educational_Experience_Vacancies::findOrFail($idVac);
 
         $path = "vac-" . $vacante->id;
         $disk = Storage::disk('azure');
@@ -913,7 +840,7 @@ class VacanteController extends Controller
             $fileName = resource_path('pending-files/'.date('y-m-d-H-i-s').$index. '.csv');
             file_put_contents($fileName,$part);
         }
-        (new Vacante())->importToDB();
+        (new Educational_Experience_Vacancies())->importToDB();
         session()->flash('status','esparando por importar');
 
         $user = Auth::user();
@@ -937,8 +864,8 @@ class VacanteController extends Controller
      */
     public function fetchHorasExperienciaEducativa(Request $request)
     {
-        $data['horasExperienciaEducativa'] = ExperienciaEducativa::where("numMateria", $request->nrc)
-            ->get(["nrc","horas"]);
+        $data['horasExperienciaEducativa'] = EducationalExperience::where("code", $request->nrc)
+            ->get(["code", "name", "hours"]);
 
         return response()->json($data);
     }
@@ -956,8 +883,11 @@ class VacanteController extends Controller
      */
     public function fetchDependenciaVacante(Request $request)
     {
-        $data['dependenciaVacante'] = Zona_Dependencia::where("id_zona", $request->idZona)
-            ->get(["clave_dependencia","nombre_dependencia"]);
+        $data['dependenciaVacante'] = DB::table("departaments")
+            ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
+            ->where('regions_departaments.region_code', '=', $request->idZona)
+            ->select('departaments.code', 'departaments.name')
+            ->get();
 
         return response()->json($data);
     }
@@ -976,8 +906,16 @@ class VacanteController extends Controller
      */
     public function fetchProgramaVacante(Request $request)
     {
-        $data['programaVacante'] = Zona_Dependencia_Programa::where("clave_dependencia", $request->idDependencia)
-            ->get(["clave_programa","nombre_programa"]);
+        $data['programaVacante'] = DB::table('educational_programs')
+            ->join(
+                'regions_educational_programs',
+                'educational_programs.program_code',
+                '=',
+                'regions_educational_programs.educational_program_code'
+            )
+            ->where('regions_educational_programs.departament_code', '=', $request->idDependencia)
+            ->select('educational_programs.*', 'regions_educational_programs.*')
+            ->get();
 
         return response()->json($data);
     }
@@ -997,7 +935,7 @@ class VacanteController extends Controller
     {
         $rangoLetrasApellido = $request->rangoLetrasApellido;
 
-        $data['filtroNombre'] = Docente::where("nombre",'LIKE','['.$request->rangoLetrasNombre.']%')
+        $data['filtroNombre'] = Lecturer::where("nombre",'LIKE','['.$request->rangoLetrasNombre.']%')
             ->where(function ($query) use ($rangoLetrasApellido){
                 $query->where("apellidoPaterno",'LIKE','['.$rangoLetrasApellido.']%');
             })
@@ -1079,109 +1017,5 @@ class VacanteController extends Controller
         return $vacantes;
 
     }
-
-    public function uploadCsvVacancies(Request $request)
-    {
-        $validated = $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:20480',
-        ]);
-
-        try {
-            $file = $request->file('csv_file');
-            $csvData = file_get_contents($file);
-
-            // Eliminar el BOM si está presente
-            $bom = pack('H*', 'EFBBBF');
-            $csvData = preg_replace("/^$bom/", '', $csvData);
-
-            $rows = array_map('str_getcsv', explode("\n", $csvData));
-
-            // Determinar el encabezado
-            $header = null;
-            $filteredRows = [];
-            foreach ($rows as $row) {
-                if (count(array_filter($row)) > 3 && is_null($header)) {
-                    $header = array_map('trim', $row);
-                    continue;
-                }
-
-                if ($header && count($row) == count($header)) {
-                    $filteredRows[] = array_map('trim', $row);
-                }
-            }
-
-            if (!$header) {
-                Log::error('No se encontró un encabezado válido en el archivo CSV.');
-                return redirect()->back()->with('status', 'error')->with('error_message', 'Encabezado no válido en el archivo CSV.');
-            }
-
-            Log::info('Archivo CSV procesado correctamente.');
-
-            // Obtener el periodo escolar activo
-            $activePeriod = SchoolPeriod::where('current', 1)->first();
-            if (!$activePeriod) {
-                Log::error('No se encontró un periodo escolar activo.');
-                return redirect()->back()->with('status', 'error')->with('error_message', 'No hay periodo escolar activo.');
-            }
-
-            foreach ($filteredRows as $row) {
-                $data = array_combine($header, $row);
-
-                $nrc = $data['NRC'] ?? null;
-                $programCode = $data['Clave Programática'] ?? null;
-                $experienceName = $data['Experiencia Educativa'] ?? null;
-
-                if (empty($nrc) || empty($programCode) || empty($experienceName)) {
-                    Log::warning("Fila ignorada por falta de datos: " . json_encode($data));
-                    continue;
-                }
-
-                // Buscar el código de la experiencia educativa por nombre
-                $educationalExperience = EducationalExperience::where('name', $experienceName)->first();
-                if (!$educationalExperience) {
-                    Log::warning("No se encontró la EE con nombre: $experienceName");
-                    continue;
-                }
-                $ee_code = $educationalExperience->code;
-
-                // Buscar la relación entre programa educativo, departamento y región
-                $relation = Regions_Educational_Program::where('educational_program_code', $programCode)->first();
-                if (!$relation) {
-                    Log::warning("No se encontró la relación entre programa educativo y región: $programCode");
-                    continue;
-                }
-
-                $region_code = $relation->region_code;
-                $departament_code = $relation->departament_code;
-
-                // Verificar si la vacante ya existe
-                $exists = Educational_Experience_Vacancies::where('nrc', $nrc)->exists();
-                if ($exists) {
-                    Log::info("Vacante con NRC $nrc ya registrada, se omite.");
-                    continue;
-                }
-
-                // Registrar la vacante
-                Educational_Experience_Vacancies::create([
-                    'nrc' => $nrc,
-                    'school_period_code' => $activePeriod->code,
-                    'region_code' => $region_code,
-                    'departament_code' => $departament_code,
-                    'area_code' => $educationalExperience->area_code,
-                    'educational_experience_code' => $ee_code,
-                    'class' => $data['Clase'] ?? '',
-                    'subGroup' => $data['Subgrupo'] ?? ''
-                ]);
-
-                Log::info("Vacante registrada: NRC $nrc, EE $ee_code");
-            }
-
-            return redirect()->back()->with('status', 'success');
-        } catch (\Exception $e) {
-            Log::error("Error al procesar el CSV: " . $e->getMessage());
-            return redirect()->back()->with('status', 'error')->with('error_message', $e->getMessage());
-        }
-    }
-
 
 }

@@ -6,7 +6,7 @@
         <div class="divide-y divide-gray-400 dark:divide-gray-700">
             @foreach ($listaDocentesHistorico as $docente)
             <div class="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700">
-                <a href="{{route('vacante.editRenuncia',$docente->id)}}" >
+                <a href="{{route('vacante.editRenuncia',$docente->staff_number)}}" >
                     <div class="flex-shrink-0">
                         <button class="items-center mt-10 text-sm font-medium text-center text-gray-500 hover:text-gray-900 focus:outline-none dark:hover:text-white dark:text-gray-400" type="button">
                             <img class="w-11 h-11" src="{{asset('images/edit.png')}}" alt="Editar Renuncia">
