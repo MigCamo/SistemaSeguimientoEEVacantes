@@ -51,7 +51,7 @@
                     @endforeach
                 @endif
 
-                <form action="{{ route('zonaDependencia.update',$dependencia->id) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('zonaDependencia.update',$dependencia->departament_code) }}" method="POST" enctype="multipart/form-data">
                     <div class="overflow-hidden shadow sm:rounded-md">
                         <div class="bg-white px-4 py-5 sm:p-6">
                             <div class="grid grid-cols-6 gap-6">
@@ -62,13 +62,13 @@
                                 <div class="col-span-6">
                                     <label for="claveDependencia" class="labelForms">Clave de la dependencia</label>
                                     <input type="number" name="claveDependencia" id="claveDependencia" class="inputForms"
-                                           value="{{old('claveDependencia',$dependencia->clave_dependencia)}}" required>
+                                           value="{{old('claveDependencia',$dependencia->departament_code)}}" required>
                                 </div>
 
                                 <div class="col-span-6">
                                     <label for="nombreDependencia" class="labelForms">Nombre de la dependencia</label>
                                     <input type="text" name="nombreDependencia" id="nombreDependencia" class="inputForms"
-                                           value="{{old('nombreDependencia',$dependencia->nombre_dependencia)}}" required>
+                                           value="{{old('nombreDependencia',$nombreDependencia->name)}}" required>
                                 </div>
 
                             </div>
