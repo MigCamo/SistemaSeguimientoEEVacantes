@@ -14,6 +14,7 @@ use App\Http\Controllers\LogUserActivityController;
 use App\Http\Controllers\SchoolPeriodController;
 use App\Http\Controllers\CurriculumDetailsController;
 use App\Models\Region;
+use App\Http\Controllers\VacantesFilesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -267,3 +268,11 @@ Route::controller(CurriculumDetailsController::class)->group(function (){
         Route::post('/curriculumDetails/upload-csv', [CurriculumDetailsController::class, 'uploadCsv'])->name('uploadCsv');
     });
 });
+
+Route::controller(VacantesFilesController::class)->group(function(){
+    Route::name('vacantesFiles.')->group(function(){
+
+        Route::post('/extraerPeriodoExcel', [VacantesFilesController::class, 'procesarArchivo'])->name('extraer');
+    });
+});
+

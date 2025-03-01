@@ -29,12 +29,32 @@
 
         <div class="w-1/4 flex flex-col items-end">
             <a href="{{ route('vacante.create') }}" class="text-white bg-azul-royal hover:bg-azul-royal-hover focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Añadir Nueva</a>
-            <a href="#" class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">Cargar desde Excel</a>
+            <form action="{{ route('vacantesFiles.extraer') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="file" name="archivo" style="display: none;" id="archivoExcelInput">
+                <button type="button" id="cargarExcelButton" class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">Cargar desde Excel</button>
+            </form>
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
         </div>
-
-
-
     </div>
+
+    <script>
+        document.getElementById('cargarExcelButton').addEventListener('click', function() {
+            document.getElementById('archivoExcelInput').click();
+        });
+
+        document.getElementById('archivoExcelInput').addEventListener('change', function() {
+            this.form.submit();
+        });
+    </script>
 
     <div >
     @if ( Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin') )
