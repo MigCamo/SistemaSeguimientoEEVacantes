@@ -3,8 +3,8 @@
     <select  id="idZona-dropdown" name="id_zona" class="estiloSelect" required>
         <option>Selecciona el N° de la zona</option>
         @foreach ($zonas as $data)
-            <option value="{{$data->id}}~{{$data->nombre}}">
-                {{$data->id}}~{{$data->nombre}}
+            <option value="{{$data->code}}">
+                {{$data->code}}~{{$data->name}}
             </option>
         @endforeach
     </select>

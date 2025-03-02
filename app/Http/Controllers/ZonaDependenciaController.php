@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreZonaDependenciaRequest;
 use App\Http\Requests\UpdateZonaDependenciaRequest;
+use App\Models\Departament;
 use App\Models\Dependencia;
 use App\Models\Educational_Experience_Vacancies;
 use App\Models\Periodo;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Providers\LogUserActivity;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 
 class ZonaDependenciaController extends Controller
@@ -34,69 +36,77 @@ class ZonaDependenciaController extends Controller
 
         //https://youtu.be/XeYd_kYkUJE
         $dependencias = DB::table('departaments')
-            ->select('code','name')
-            ->where('code','LIKE','%'.$search.'%')
-            ->orWhere('name','LIKE','%'.$search.'%')
-            ->orderBy('code','asc')
+            ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
+            ->join('regions', 'regions_departaments.region_code', '=', 'regions.code')
+            ->select('departaments.code', 'departaments.name', 'regions.code as region_code', 'regions.name as region_name') // Seleccionar los campos necesarios
+            ->where('departaments.code', 'LIKE', '%' . $search . '%')
+            ->orWhere('departaments.name', 'LIKE', '%' . $search . '%')
+            ->orderBy('departaments.code', 'asc')
             ->paginate(10)
-            ->withQueryString()
-            ;
+            ->withQueryString();
 
         if(isset($radioButton)){
 
             switch ($radioButton){
 
                 case "numeroZona":
-                    $dependencias = DB::table('zona__dependencias')
-                        ->select('id','id_zona','nombre_zona','clave_dependencia','nombre_dependencia')
-                        ->where('id_zona','LIKE','%'.$search.'%')
-                        ->orderBy('id_zona', 'asc')
+                    $dependencias = DB::table('departaments')
+                        ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
+                        ->join('regions', 'regions_departaments.region_code', '=', 'regions.code')
+                        ->select('departaments.code', 'departaments.name', 'regions.code as region_code', 'regions.name as region_name') // Seleccionar los campos necesarios
+                        ->where('departaments.code', 'LIKE', '%' . $search . '%')
+                        ->orWhere('departaments.name', 'LIKE', '%' . $search . '%')
+                        ->orderBy('region_code', 'asc')
                         ->paginate(10)
-                        ->withQueryString()
-                        ;
+                        ->withQueryString();
                     break;
 
                 case "nombreZona":
-                    $dependencias = DB::table('zona__dependencias')
-                        ->select('id','id_zona','nombre_zona','clave_dependencia','nombre_dependencia')
-                        ->where('nombre_zona','LIKE','%'.$search.'%')
-                        ->orderBy('nombre_zona', 'asc')
+                    $dependencias = DB::table('departaments')
+                        ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
+                        ->join('regions', 'regions_departaments.region_code', '=', 'regions.code')
+                        ->select('departaments.code', 'departaments.name', 'regions.code as region_code', 'regions.name as region_name') // Seleccionar los campos necesarios
+                        ->where('departaments.code', 'LIKE', '%' . $search . '%')
+                        ->orWhere('departaments.name', 'LIKE', '%' . $search . '%')
+                        ->orderBy('region_name', 'asc')
                         ->paginate(10)
-                        ->withQueryString()
-                        ;
+                        ->withQueryString();
                     break;
 
                 case "claveDependencia":
-                    $dependencias = DB::table('zona__dependencias')
-                        ->select('id','id_zona','nombre_zona','clave_dependencia','nombre_dependencia')
-                        ->where('clave_dependencia','LIKE','%'.$search.'%')
-                        ->orderBy('clave_dependencia', 'asc')
+                    $dependencias = DB::table('departaments')
+                        ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
+                        ->join('regions', 'regions_departaments.region_code', '=', 'regions.code')
+                        ->select('departaments.code', 'departaments.name', 'regions.code as region_code', 'regions.name as region_name') // Seleccionar los campos necesarios
+                        ->where('departaments.code', 'LIKE', '%' . $search . '%')
+                        ->orWhere('departaments.name', 'LIKE', '%' . $search . '%')
+                        ->orderBy('departaments.code', 'asc')
                         ->paginate(10)
-                        ->withQueryString()
-                        ;
+                        ->withQueryString();
                     break;
 
                 case "nombreDependencia":
-                    $dependencias = DB::table('zona__dependencias')
-                        ->select('id','id_zona','nombre_zona','clave_dependencia','nombre_dependencia')
-                        ->where('nombre_dependencia','LIKE','%'.$search.'%')
-                        ->orderBy('nombre_dependencia', 'asc')
+                    $dependencias = DB::table('departaments')
+                        ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
+                        ->join('regions', 'regions_departaments.region_code', '=', 'regions.code')
+                        ->select('departaments.code', 'departaments.name', 'regions.code as region_code', 'regions.name as region_name') // Seleccionar los campos necesarios
+                        ->where('departaments.code', 'LIKE', '%' . $search . '%')
+                        ->orWhere('departaments.name', 'LIKE', '%' . $search . '%')
+                        ->orderBy('departaments.name', 'asc')
                         ->paginate(10)
-                        ->withQueryString()
-                        ;
+                        ->withQueryString();
                     break;
 
                 default:
-                    $dependencias = DB::table('zona__dependencias')
-                        ->select('id','id_zona','nombre_zona','clave_dependencia','nombre_dependencia')
-                        ->where('id_zona','LIKE','%'.$search.'%')
-                        ->orWhere('nombre_zona','LIKE','%'.$search.'%')
-                        ->orWhere('clave_dependencia','LIKE','%'.$search.'%')
-                        ->orWhere('nombre_dependencia','LIKE','%'.$search.'%')
-                        ->orderBy('id_zona','asc')
-                        ->paginate(10)
-                        ->withQueryString()
-                        ;
+                $dependencias = DB::table('departaments')
+                    ->join('regions_departaments', 'departaments.code', '=', 'regions_departaments.departament_code')
+                    ->join('regions', 'regions_departaments.region_code', '=', 'regions.code')
+                    ->select('departaments.code', 'departaments.name', 'regions.code as region_code', 'regions.name as region_name') // Seleccionar los campos necesarios
+                    ->where('departaments.code', 'LIKE', '%' . $search . '%')
+                    ->orWhere('departaments.name', 'LIKE', '%' . $search . '%')
+                    ->orderBy('departaments.code', 'asc')
+                    ->paginate(10)
+                    ->withQueryString();
             }
 
         }
@@ -130,19 +140,27 @@ class ZonaDependenciaController extends Controller
      */
     public function store(StoreZonaDependenciaRequest $request)
     {
-        $dependencia = new Regions_Departaments();
+        $request->validate([
+            'claveDependencia' => 'required|string|unique:departaments,code',
+            'nombreDependencia' => 'required|string',
+        ]);
 
-        $zonaCompleta = $request->id_zona;
-        $zonaPartes = explode("~",$zonaCompleta);
+        $dependencia = new Departament();
+        $dependencia->code = $request->input('claveDependencia');
+        $dependencia->name = $request->input('nombreDependencia');
+        $dependencia->created_at = Carbon::now();
+        $dependencia->updated_at = Carbon::now();
 
-        $dependencia->id_zona = $zonaPartes[0];
-        $dependencia->nombre_zona = $zonaPartes[1];
-        $dependencia->clave_dependencia = $request->claveDependencia;
-        $dependencia->nombre_dependencia = $request->nombreDependencia;
+        $regionDepartament = new Regions_Departaments();
+        $regionDepartament->region_code = $request->id_zona;
+        $regionDepartament->departament_code = $request->claveDependencia;
+        $regionDepartament->created_at = Carbon::now();
+        $regionDepartament->updated_at = Carbon::now();
 
         //dd($dependencia);
 
         $dependencia->save();
+        $regionDepartament->save();
 
         $user = Auth::user();
         $data = $request->idZona ." ". $request->nombreZona ." ". $request->claveDependencia ." ". $request->nombreDependencia;
@@ -172,14 +190,14 @@ class ZonaDependenciaController extends Controller
     public function edit($id)
     {
         //Obtener nombre de la zona
-        $nombreZona = Regions_Departaments::where('id',$id)->value('nombre_zona');
-
-
-        $dependencia = Regions_Departaments::where('id',$id)->firstOrFail();
+        $nombreZona = DB::table('regions')->join('regions_departaments', 'regions_departaments.region_code', '=', 'regions.code')->where('regions_departaments.departament_code',$id)->value('regions.name');
+        $dependencia = Regions_Departaments::where('departament_code',$id)->firstOrFail();
+        $nombreDependencia = Departament::where('code', $dependencia->departament_code)->firstOrFail();
         $listaZonas = Region::all();
         return view('zonaDependencia.edit', ['dependencia' => $dependencia,
                                                   'zonas' => $listaZonas,
-                                                  'nombreZona' => $nombreZona
+                                                  'nombreZona' => $nombreZona,
+                                                  'nombreDependencia' => $nombreDependencia,
                                                 ]);
 
     }
@@ -263,20 +281,13 @@ class ZonaDependenciaController extends Controller
         $data = file_get_contents($path);
         $uv = 'data:image/' . $type . ';base64,' . base64_encode($data);
 
-        $periodoActual = SchoolPeriod::where('actual','1')->value('clavePeriodo');
+        $periodoActual = SchoolPeriod::where('current','1')->value('code');
 
-        $listaVacantes = Educational_Experience_Vacancies::where('numDependencia',$id)
-            ->where(function ($query) use ($periodoActual){
-            $query->whereNull('deleted_at')
-                ->where('clavePeriodo',$periodoActual);
-        })
-            ->where(function ($query) {
-                //$query->whereNull('numPersonalDocente');
-                $query->where('nombreDocente','');
-            })
+        $listaVacantes = Educational_Experience_Vacancies::where('departament_code', $id)
+            ->where('school_period_code', $periodoActual) // Eliminar la condición whereNull('deleted_at')
             ->get();
 
-        $dependencia = Regions_Departaments::where('clave_dependencia',$id)->value('nombre_dependencia');
+        $dependencia = DB::table('departaments')->join('regions_departaments', 'regions_departaments.departament_code', '=', 'departaments.code')->where('departaments.code',$id)->value('departaments.name');
 
         $pdf = Pdf::loadView('pdf.templateVacantesPorDependencia', compact(
                 'listaVacantes','dependencia', 'uv')
