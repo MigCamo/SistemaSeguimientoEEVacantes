@@ -23,11 +23,7 @@ class StoreZonaDependenciaRequest extends FormRequest
      */
     public function rules()
     {
-        return [
-            'id_zona' => 'required|string|min:1',
-            'claveDependencia' => 'unique:App\Models\Zona_Dependencia,clave_dependencia',
-            'nombreDependencia' => 'required|string|min:1',
-        ];
+        return []; // Devuelve un array vacío para desactivar la validación
     }
 
     public function messages()

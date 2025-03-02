@@ -27,7 +27,7 @@ class UpdateZonaDependenciaRequest extends FormRequest
         return [
             'id_zona' => 'required|string|min:1',
             'claveDependencia' => [
-                Rule::unique('zona__dependencias','clave_dependencia')->ignore($this->route('id')),
+                Rule::unique('regions_departaments','departament_code')->ignore($this->route('id')),
             ],
             'nombreDependencia' => 'required|string|min:1',
         ];
