@@ -27,12 +27,14 @@
             <p class="text-2xl font-bold">Lista de Experiencias Educativas Vacantes</p>
         </div>
 
-        <div class="w-1/4 flex flex-col items-end">
-            <a href="{{ route('vacante.create') }}" class="text-white bg-azul-royal hover:bg-azul-royal-hover focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Añadir Nueva</a>
-            <a href="#" class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">Cargar desde Excel</a>
+        <div class="w-1/4 flex flex-row items-end justify-end space-x-4">
+            <button id="uploadCsvButton" class="text-white bg-verde-primario hover:bg-verde-primario focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">
+                Cargar CSV
+            </button>
+            <a href="{{ route('vacante.create') }}" class="text-white bg-azul-royal hover:bg-azul-royal-hover focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                Agregar EE
+            </a>
         </div>
-
-
 
     </div>
 
@@ -236,6 +238,24 @@
     </div>
 
 </div>
-
 </body>
 </html>
+
+<script>
+    document.getElementById('uploadCsvButton').addEventListener('click', function() {
+        document.getElementById('uploadCsvModal').classList.remove('hidden');
+    });
+
+    document.getElementById('closeCsvModalButton').addEventListener('click', function() {
+        document.getElementById('uploadCsvModal').classList.add('hidden');
+    });
+
+    document.getElementById('cancelCsvUploadButton').addEventListener('click', function() {
+        document.getElementById('uploadCsvModal').classList.add('hidden');
+    });
+
+    document.getElementById('csvForm').addEventListener('submit', function() {
+        document.getElementById('loadingAlert').style.display = 'block';
+        document.getElementById('csvForm').style.display = 'none';
+    });
+</script>

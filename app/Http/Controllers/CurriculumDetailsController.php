@@ -27,13 +27,22 @@ class CurriculumDetailsController extends Controller
         return view('curriculumDetails.index', compact('educationExperiencesList', 'curriculum'));
     }
 
-    public function store(string $curriculum_code, string $ee_code)
+    public function store(Request $request)
     {
-        $curriculum_ee = new Curriculum_Educational_Experiences([
-            'ee_code' => $ee_code,
-            'curriculum_code' => $curriculum_code,
+        // Validar los datos recibidos
+        $request->validate([
+            'curriculum_code' => 'required|string',
+            'ee_code' => 'required|string',
         ]);
+
+        // Crear la relación en la base de datos
+        $curriculum_ee = new Curriculum_Educational_Experiences([
+            'ee_code' => $request->ee_code,
+            'curriculum_code' => $request->curriculum_code,
+        ]);
+
         $curriculum_ee->save();
+
         return redirect()->route('curriculumDetails.index');
     }
 

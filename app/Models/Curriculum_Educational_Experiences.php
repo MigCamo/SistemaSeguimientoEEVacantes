@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\EducationalExperience;
+use App\Models\Curriculum;
 
 class Curriculum_Educational_Experiences extends Model
 {
@@ -14,5 +16,13 @@ class Curriculum_Educational_Experiences extends Model
         'curriculum_code',
     ];
 
-    protected $guarded = [];
+    public function educationalExperience()
+    {
+        return $this->belongsTo(EducationalExperience::class, 'ee_code', 'code');
+    }
+
+    public function curriculum()
+    {
+        return $this->belongsTo(Curriculum::class, 'curriculum_code', 'code');
+    }
 }

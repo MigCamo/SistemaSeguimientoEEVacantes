@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EducationalExperience; // Cambiado para usar el nuevo modelo
+use App\Models\EducationalExperience;
 use App\Http\Requests\StoreExperienciaEducativaRequest;
 use App\Http\Requests\UpdateEducationalExperienceRequest;
 use App\Http\Requests\UpdateExperienciaEducativaRequest;
@@ -97,19 +97,33 @@ class ExperienciaEducativaController extends Controller
      */
     public function store(StoreExperienciaEducativaRequest $request)
     {
-        // Creación de la nueva experiencia educativa usando los nuevos nombres de campos
-        $ee = new EducationalExperience();
-        $ee->code = $request->code;
-        $ee->name = $request->name;
-        $ee->hours = $request->hours;
-        $ee->save();
+        // Comprobamos si ya existe el código de la materia.
+        if (EducationalExperience::where('code', $request->code)->exists()) {
+            // Si existe, redirigimos hacia atrás con el mensaje de error.
+            return redirect()->back()->with('error', 'El código de la experiencia educativa ya existe.');
+        }
 
-        $user = Auth::user();
-        $data = $request->code . " " . $request->name . " " . $request->hours;
-        event(new LogUserActivity($user, "Creación de Experiencia Educativa", $data));
+        try {
+            // Si no existe, procedemos a registrar la experiencia educativa.
+            $ee = new EducationalExperience();
+            $ee->code = $request->code;
+            $ee->name = $request->name;
+            $ee->hours = $request->hours;
+            $ee->save();
 
-        return redirect()->route('experienciaEducativa.index');
+            // Guardamos actividad del usuario (esto es opcional).
+            $user = Auth::user();
+            $data = $request->code . " " . $request->name . " " . $request->hours;
+            event(new LogUserActivity($user, "Creación de Experiencia Educativa", $data));
+
+            // Redirigimos con mensaje de éxito.
+            return redirect()->route('experienciaEducativa.index')->with('success', 'Experiencia educativa registrada exitosamente.');
+        } catch (\Exception $e) {
+            // En caso de error, redirigimos con un mensaje genérico de error.
+            return redirect()->back()->with('error', 'Hubo un error al registrar la experiencia educativa.');
+        }
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -117,9 +131,9 @@ class ExperienciaEducativaController extends Controller
      * @param  \App\Models\EducationalExperience  $experienciaEducativa
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit($code)
     {
-        $experienciaEducativa = EducationalExperience::findOrFail($id);
+        $experienciaEducativa = EducationalExperience::findOrFail($code);
         return view('experienciaEducativa.edit', compact('experienciaEducativa'));
     }
 
@@ -130,11 +144,11 @@ class ExperienciaEducativaController extends Controller
      * @param  \App\Models\EducationalExperience  $experienciaEducativa
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateEducationalExperienceRequest $request, $id)
+    public function update(UpdateEducationalExperienceRequest $request, $code)
     {
-        $experienciaEducativa = EducationalExperience::findOrFail($id);
+        $educationalExperience= EducationalExperience::where('code', $code)->firstOrFail();
 
-        $experienciaEducativa->update([
+        $educationalExperience->update([
             'code' => $request->code,
             'name' => $request->name,
             'hours' => $request->hours,
@@ -142,7 +156,7 @@ class ExperienciaEducativaController extends Controller
 
         $user = Auth::user();
         $data = $request->code . " " . $request->name . " " . $request->hours;
-        event(new LogUserActivity($user, "Actualización de Experiencia Educativa ID: $id", $data));
+        event(new LogUserActivity($user, "Actualización de Experiencia Educativa ID: $code", $data));
 
         return redirect()->route('experienciaEducativa.index');
     }
@@ -153,14 +167,14 @@ class ExperienciaEducativaController extends Controller
      * @param  \App\Models\EducationalExperience  $experienciaEducativa
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($code)
     {
-        $ee = EducationalExperience::findOrFail($id);
+        $ee = EducationalExperience::where('code', $code)->firstOrFail();
         $ee->delete();
 
         $user = Auth::user();
-        $data = "Eliminación de la Experiencia Educativa ID: $id";
-        event(new LogUserActivity($user, "Eliminación de la Experiencia Educativa ID $id", $data));
+        $data = "Eliminación de la Experiencia Educativa ID: $code";
+        event(new LogUserActivity($user, "Eliminación de la Experiencia Educativa ID $code", $data));
 
         return redirect()->route('experienciaEducativa.index');
     }

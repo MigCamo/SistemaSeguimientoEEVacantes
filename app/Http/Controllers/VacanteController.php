@@ -3,44 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\IndexVacanteRequest;
-use App\Http\Requests\StoreDocenteRequest;
 use App\Http\Requests\StoreExperienciaEducativaRequest;
 use App\Http\Requests\StoreLecturerRequest;
-use App\Models\Area;
-use App\Models\Docente;
+use App\Models\SchoolPeriod;
+use App\Models\Regions_Educational_Program;
 use App\Models\HistoricoDocente;
-use App\Models\Periodo;
-use App\Models\SearchVacante;
-use App\Models\TipoAsignacion;
-use App\Models\Vacante;
-use App\Models\Motivo;
-use App\Models\ExperienciaEducativa;
-use App\Http\Requests\StoreVacanteRequest;
 use App\Models\AssignedVacancy;
-use App\Models\Departament;
 use App\Models\Educational_Experience_Vacancies;
 use App\Models\EducationalExperience;
-use App\Models\EducationalProgram;
 use App\Models\Lecturer;
 use App\Models\Reason;
 use App\Models\Region;
 use App\Models\Regions_Departament_Programs;
-use App\Models\Regions_Departaments;
-use App\Models\SchoolPeriod;
 use App\Models\TypeAsignation;
-use App\Models\Zona;
-use App\Models\Zona_Dependencia;
-use App\Models\Zona_Dependencia_Programa;
 use App\Providers\LogUserActivity;
 use App\Providers\OperacionCierreVacante;
-use App\Providers\OperacionHorasVacante;
-use App\Providers\RenunciaDocente;
-use App\Providers\SelectVacanteIndex;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
+use App\Models\Curriculum_Educational_Experiences;
+
+
+use Illuminate\Support\Facades\Log;
+
 use Carbon\Carbon;
 
 
@@ -356,19 +342,19 @@ class VacanteController extends Controller
             if (!$request->hasFile('file')) {
                 throw new \Exception("Es obligatorio adjuntar un archivo PDF.");
             }
-        
+
             $file = $request->file('file');
-        
+
             // Validar que el archivo sea un PDF
             if ($file->getClientOriginalExtension() !== 'pdf') {
                 throw new \Exception("El archivo debe ser un PDF.");
             }
-        
+
             // Validar el tamaño del archivo (máximo 2MB)
             if ($file->getSize() > 2 * 1024 * 1024) { // 2MB
                 throw new \Exception("El archivo no debe superar los 2MB.");
             }
-        
+
             // Convertir el archivo a binario y guardarlo en el campo `content`
             $vacante->content = file_get_contents($file->getRealPath());
 
@@ -1056,17 +1042,28 @@ class VacanteController extends Controller
 
             $rows = array_map('str_getcsv', explode("\n", $csvData));
 
-            // Determinar el encabezado
             $header = null;
             $filteredRows = [];
+            $currentPlaza = null;
+
             foreach ($rows as $row) {
-                if (count(array_filter($row)) > 3 && is_null($header)) {
-                    $header = array_map('trim', $row);
+                $row = array_map('trim', $row);
+
+                // Detectar una nueva plaza
+                if (preg_match('/Plaza:\s*(\d+)/', implode(' ', $row), $matches)) {
+                    $currentPlaza = $matches[1];
                     continue;
                 }
 
-                if ($header && count($row) == count($header)) {
-                    $filteredRows[] = array_map('trim', $row);
+                if (count(array_filter($row)) > 3 && is_null($header)) {
+                    $header = $row;
+                    $header[] = 'Plaza'; // Agregar la columna Plaza manualmente
+                    continue;
+                }
+
+                if ($header && count($row) == count($header) - 1) {
+                    $row[] = $currentPlaza; // Asignar la plaza actual a la fila
+                    $filteredRows[] = $row;
                 }
             }
 
@@ -1077,7 +1074,6 @@ class VacanteController extends Controller
 
             Log::info('Archivo CSV procesado correctamente.');
 
-            // Obtener el periodo escolar activo
             $activePeriod = SchoolPeriod::where('current', 1)->first();
             if (!$activePeriod) {
                 Log::error('No se encontró un periodo escolar activo.');
@@ -1087,24 +1083,34 @@ class VacanteController extends Controller
             foreach ($filteredRows as $row) {
                 $data = array_combine($header, $row);
 
+                // Verificar condiciones antes de registrar
+                if (($data['Imparte'] ?? '') !== 'NO' || !empty($data['Nombre del suplente / interino'])) {
+                    Log::info("Fila omitida por condiciones de Imparte y suplente: " . json_encode($data));
+                    continue;
+                }
+
                 $nrc = $data['NRC'] ?? null;
                 $programCode = $data['Clave Programática'] ?? null;
                 $experienceName = $data['Experiencia Educativa'] ?? null;
+                $numPlaza = $data['Plaza'] ?? null;
 
                 if (empty($nrc) || empty($programCode) || empty($experienceName)) {
                     Log::warning("Fila ignorada por falta de datos: " . json_encode($data));
                     continue;
                 }
 
-                // Buscar el código de la experiencia educativa por nombre
-                $educationalExperience = EducationalExperience::where('name', $experienceName)->first();
+                $educationalExperience = Curriculum_Educational_Experiences::whereHas('educationalExperience', function ($query) use ($experienceName) {
+                    $query->where('name', $experienceName);
+                })->whereHas('curriculum', function ($query) use ($programCode) {
+                    $query->where('educational_programs_code', $programCode);
+                })->first();
+
                 if (!$educationalExperience) {
-                    Log::warning("No se encontró la EE con nombre: $experienceName");
+                    Log::warning("No se encontró la EE con nombre: $experienceName y programa: $programCode");
                     continue;
                 }
-                $ee_code = $educationalExperience->code;
+                $ee_code = $educationalExperience->ee_code;
 
-                // Buscar la relación entre programa educativo, departamento y región
                 $relation = Regions_Educational_Program::where('educational_program_code', $programCode)->first();
                 if (!$relation) {
                     Log::warning("No se encontró la relación entre programa educativo y región: $programCode");
@@ -1114,14 +1120,11 @@ class VacanteController extends Controller
                 $region_code = $relation->region_code;
                 $departament_code = $relation->departament_code;
 
-                // Verificar si la vacante ya existe
-                $exists = Educational_Experience_Vacancies::where('nrc', $nrc)->exists();
-                if ($exists) {
+                if (Educational_Experience_Vacancies::where('nrc', $nrc)->exists()) {
                     Log::info("Vacante con NRC $nrc ya registrada, se omite.");
                     continue;
                 }
 
-                // Registrar la vacante
                 Educational_Experience_Vacancies::create([
                     'nrc' => $nrc,
                     'school_period_code' => $activePeriod->code,
@@ -1129,11 +1132,13 @@ class VacanteController extends Controller
                     'departament_code' => $departament_code,
                     'area_code' => $educationalExperience->area_code,
                     'educational_experience_code' => $ee_code,
+                    'educational_program_code' => $programCode,
                     'class' => $data['Clase'] ?? '',
-                    'subGroup' => $data['Subgrupo'] ?? ''
+                    'subGroup' => $data['Subgrupo'] ?? '',
+                    'numPlaza' => $numPlaza,
                 ]);
 
-                Log::info("Vacante registrada: NRC $nrc, EE $ee_code");
+                Log::info("Vacante registrada: NRC $nrc, EE $ee_code, Program Code $programCode, Num Plaza $numPlaza");
             }
 
             return redirect()->back()->with('status', 'success');
@@ -1142,5 +1147,4 @@ class VacanteController extends Controller
             return redirect()->back()->with('status', 'error')->with('error_message', $e->getMessage());
         }
     }
-
 }

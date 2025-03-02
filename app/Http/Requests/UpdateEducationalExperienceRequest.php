@@ -30,7 +30,7 @@ class UpdateEducationalExperienceRequest extends FormRequest
               'required',
               'string',
               'min:1',
-              Rule::unique('experiencia_educativas')->ignore($this->route('id')),
+              Rule::unique('educational_experiences')->ignore($this->route('id')),
             ],
         ];
     }

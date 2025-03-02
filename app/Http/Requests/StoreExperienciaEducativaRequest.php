@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\EducationalExperience;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreExperienciaEducativaRequest extends FormRequest
@@ -25,8 +26,7 @@ class StoreExperienciaEducativaRequest extends FormRequest
     public function rules()
     {
         return [
-            'code'=> 'unique:App\Models\ExperienciaEducativa,code|required|string|min:1',
-            //'nrc'=> 'unique:App\Models\ExperienciaEducativa,nrc|nullable|numeric|min:1',
+            'code'=> 'unique:App\Models\EducationalExperience,code|required|string|min:1',
             'name'=> 'required|string|min:1',
             'hours'=> 'required|string|min:1',
         ];

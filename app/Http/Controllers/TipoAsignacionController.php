@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTipoAsignacionRequest;
 use App\Http\Requests\UpdateTipoAsignacionRequest;
 use App\Models\TipoAsignacion;
+use App\Models\TypeAsignation;
 use App\Providers\LogUserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,11 +23,11 @@ class TipoAsignacionController extends Controller
         $search = trim($request->get('search'));
         $radioButton = $request->get('tipo');
 
-        $tiposAsignacion = DB::table('tipo_asignacions')
-            ->select('id','tipo','descripcion')
-            ->where('tipo','LIKE','%'.$search.'%')
-            ->orWhere('descripcion','LIKE','%'.$search.'%')
-            ->orderBy('tipo','asc')
+        $tiposAsignacion = DB::table('type_asignations')
+            ->select('id','type_asignation','description')
+            ->where('type_asignation','LIKE','%'.$search.'%')
+            ->orWhere('description','LIKE','%'.$search.'%')
+            ->orderBy('type_asignation','asc')
             ->paginate(10)
             ->withQueryString()
         ;
@@ -35,32 +36,32 @@ class TipoAsignacionController extends Controller
 
             switch ($radioButton){
 
-                case "tipo":
-                    $tiposAsignacion = DB::table('tipo_asignacions')
-                        ->select('id','tipo','descripcion')
-                        ->where('tipo','LIKE','%'.$search.'%')
-                        ->orderBy('tipo', 'asc')
+                case "type_asignation":
+                    $tiposAsignacion = DB::table('type_asignations')
+                        ->select('id','type_asignation','description')
+                        ->where('type_asignation','LIKE','%'.$search.'%')
+                        ->orderBy('type_asignation', 'asc')
                         ->paginate(10)
                         ->withQueryString()
                     ;
                     break;
 
-                case "descripcion":
-                    $tiposAsignacion = DB::table('tipo_asignacions')
-                        ->select('id','tipo','descripcion')
-                        ->where('descripcion','LIKE','%'.$search.'%')
-                        ->orderBy('descripcion', 'asc')
+                case "description":
+                    $tiposAsignacion = DB::table('type_asignations')
+                        ->select('id','type_asignation','description')
+                        ->where('description','LIKE','%'.$search.'%')
+                        ->orderBy('description', 'asc')
                         ->paginate(10)
                         ->withQueryString()
                     ;
                     break;
 
                 default:
-                    $tiposAsignacion = DB::table('tipo_asignacions')
-                        ->select('id','tipo','descripcion')
-                        ->where('tipo','LIKE','%'.$search.'%')
-                        ->orWhere('descripcion','LIKE','%'.$search.'%')
-                        ->orderBy('tipo','asc')
+                    $tiposAsignacion = DB::table('type_asignations')
+                        ->select('id','type_asignation','description')
+                        ->where('type_asignation','LIKE','%'.$search.'%')
+                        ->orWhere('description','LIKE','%'.$search.'%')
+                        ->orderBy('type_asignation','asc')
                         ->paginate(10)
                         ->withQueryString()
                     ;
@@ -90,14 +91,14 @@ class TipoAsignacionController extends Controller
     public function store(StoreTipoAsignacionRequest $request)
     {
 
-        $tiposAsignacion = new TipoAsignacion();
-        $tiposAsignacion->tipo = $request->tipo;
-        $tiposAsignacion->descripcion = $request->descripcion;
+        $tiposAsignacion = new TypeAsignation();
+        $tiposAsignacion->type_asignation = $request->type_asignation;
+        $tiposAsignacion->description = $request->description;
 
         $tiposAsignacion->save();
 
         $user = Auth::user();
-        $data = $request->id ." ". $request->tipo ." ". $request->descripcion;
+        $data = $request->id ." ". $request->type_asignation ." ". $request->description;
         event(new LogUserActivity($user,"Creación de Tipo de Asignación",$data));
 
         return redirect()->route('tipoAsignacion.index');
@@ -118,13 +119,13 @@ class TipoAsignacionController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\TipoAsignacion  $tipoAsignacion
+     * @param  \App\Models\TypeAsignation  $tipoAsignacion
      * @return \Illuminate\Http\Response
      */
     public function edit($id)
     {
         //
-        $tiposAsignacion = TipoAsignacion::where('id',$id)->firstOrFail();
+        $tiposAsignacion = TypeAsignation::where('id',$id)->firstOrFail();
         return view('tipoAsignacion.edit', compact('tiposAsignacion'));
     }
 
@@ -137,17 +138,17 @@ class TipoAsignacionController extends Controller
      */
     public function update(UpdateTipoAsignacionRequest $request, $id)
     {
-        $tiposAsignacion = TipoAsignacion::where('id',$id)->firstOrFail();
-        $tipo = $request->tipo;
-        $descripcion = $request->descripcion;
+        $tiposAsignacion = TypeAsignation::where('id',$id)->firstOrFail();
+        $tipo = $request->type_asignation;
+        $descripcion = $request->description;
 
         $tiposAsignacion->update([
-            'tipo' => $tipo,
-            'descripcion' => $descripcion,
+            'type_asignation' => $tipo,
+            'description' => $descripcion,
         ]);
 
         $user = Auth::user();
-        $data = $request->id ." ". $request->tipo ." ". $request->descripcion;
+        $data = $request->id ." ". $request->type_asignation ." ". $request->description;
         event(new LogUserActivity($user,"Actualización de Tipo de Asignación ID: $request->id",$data));
 
         return redirect()->route('tipoAsignacion.index');
@@ -156,12 +157,12 @@ class TipoAsignacionController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\TipoAsignacion  $tipoAsignacion
+     * @param  \App\Models\TypeAsignation  $tipoAsignacion
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
-        $tiposAsignacion = TipoAsignacion::where('id',$id)->firstOrFail();
+        $tiposAsignacion = TypeAsignation::where('id',$id)->firstOrFail();
         $tiposAsignacion->delete($id);
 
         $user = Auth::user();

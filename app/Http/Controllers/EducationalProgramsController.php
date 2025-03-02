@@ -87,30 +87,38 @@ class EducationalProgramsController extends Controller
      */
     public function store(StoreEducationalProgramRequest $request)
     {
-        $region = explode("~",$request->regionCode);
-        $departament = explode("~",$request->departamentCode);
+        $region = explode("~", $request->regionCode);
+        $departament = explode("~", $request->departamentCode);
 
-        $educationalProgram = new EducationalProgram([
-            'program_code' => $request->program_code,
-            'name' => $request->name,
-            'initialhours' => $request->initialhours,
-            'usedhours' => $request->usedhours,
-            'availablehours' => $request->initialhours - $request->usedhours,
-        ]);
-        $educationalProgram->save();
+        if (EducationalProgram::where('program_code', $request->program_code)->exists()) {
+            return redirect()->back()->with('error', 'El código del programa educativo ya existe.');
+        }
 
-        $regionsDepartamentsPrograms = new Regions_Departament_Programs([
-            'region_code' => $region[0],
-            'departament_code' => $departament[0],
-            'educational_program_code' => $request->program_code
-        ]);
-        $regionsDepartamentsPrograms->save();
+        try {
+            $educationalProgram = new EducationalProgram([
+                'program_code' => $request->program_code,
+                'name' => $request->name,
+                'initialhours' => $request->initialhours,
+                'usedhours' => $request->usedhours,
+                'availablehours' => $request->initialhours - $request->usedhours,
+            ]);
+            $educationalProgram->save();
 
-        $user = Auth::user();
-        $data = $request->regionCode." ".$request->departamentCode." ".$request->program_code ." ". $request->name ." ". $request->initialhours ." ". $request->usedHours ." ". $request->availablehours;
-        event(new LogUserActivity($user,"Creación de Programa Educativo",$data));
+            $regionsDepartamentsPrograms = new Regions_Departament_Programs([
+                'region_code' => $region[0],
+                'departament_code' => $departament[0],
+                'educational_program_code' => $request->program_code
+            ]);
+            $regionsDepartamentsPrograms->save();
 
-        return redirect()->route('educationalPrograms.index');
+            $user = Auth::user();
+            $data = $request->regionCode . " " . $request->departamentCode . " " . $request->program_code . " " . $request->name . " " . $request->initialhours . " " . $request->usedhours . " " . $request->availablehours;
+            event(new LogUserActivity($user, "Creación de Programa Educativo", $data));
+
+            return redirect()->route('educationalPrograms.index')->with('success', 'Programa educativo registrado exitosamente.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Hubo un error al registrar el programa educativo.');
+        }
     }
 
     /**

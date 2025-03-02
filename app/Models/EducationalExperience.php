@@ -9,7 +9,9 @@ class EducationalExperience extends Model
 {
     use HasFactory;
 
-    //protected $primaryKey = 'nrc';
+    protected $primaryKey = 'code';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'code',
@@ -18,4 +20,6 @@ class EducationalExperience extends Model
     ];
 
     protected $guarded = [];
+
+    protected $table = 'educational_experiences';
 }

@@ -48,7 +48,7 @@
                     @endforeach
                 @endif
 
-                <form action="{{ route('experienciaEducativa.update', $experienciaEducativa->id) }}" method="POST">
+                <form action="{{ route('experienciaEducativa.update', $experienciaEducativa->code) }}" method="POST">
                     @csrf
                     @method('PUT')
                     <div class="overflow-hidden shadow sm:rounded-md">

@@ -130,7 +130,7 @@ Route::controller(ExperienciaEducativaController::class)->group(function (){
         Route::delete('/experienciaEducativa/destroy/{id}',  'destroy')->name('destroy');
 
         Route::get('/experienciaEducativa/edit/{id}','edit')->name('edit');
-        Route::post('/experienciaEducativa/update/{id}','update')->name('update');
+        Route::put('/experienciaEducativa/update/{id}','update')->name('update');
 
     });
 

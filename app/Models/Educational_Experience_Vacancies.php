@@ -23,6 +23,7 @@ class Educational_Experience_Vacancies extends Model
         'departament_code',
         'area_code',
         'educational_experience_code',
+        'educational_program_code',
         'class',
         'subGroup',
         'numPlaza',
