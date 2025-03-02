@@ -28,6 +28,8 @@ class Educational_Experience_Vacancies extends Model
         'subGroup',
         'numPlaza',
         'content',
+        'reason_code',
+        'academic',
     ];
 
     // Relaciones con otros modelos

@@ -1036,7 +1036,6 @@ class VacanteController extends Controller
             $file = $request->file('csv_file');
             $csvData = file_get_contents($file);
 
-            // Eliminar el BOM si está presente
             $bom = pack('H*', 'EFBBBF');
             $csvData = preg_replace("/^$bom/", '', $csvData);
 
@@ -1049,6 +1048,12 @@ class VacanteController extends Controller
             foreach ($rows as $row) {
                 $row = array_map('trim', $row);
 
+                // Detectar un nuevo académico
+                if (preg_match('/Académico:\s*([\d]+-[A-ZÁÉÍÓÚÑ ]+)/', implode(' ', $row), $matches)) {
+                    $currentAcademic = $matches[1]; // Guarda el académico actual
+                    continue;
+                }
+
                 // Detectar una nueva plaza
                 if (preg_match('/Plaza:\s*(\d+)/', implode(' ', $row), $matches)) {
                     $currentPlaza = $matches[1];
@@ -1057,12 +1062,14 @@ class VacanteController extends Controller
 
                 if (count(array_filter($row)) > 3 && is_null($header)) {
                     $header = $row;
-                    $header[] = 'Plaza'; // Agregar la columna Plaza manualmente
+                    $header[] = 'Plaza';
+                    $header[] = 'Academic';
                     continue;
                 }
 
                 if ($header && count($row) == count($header) - 1) {
-                    $row[] = $currentPlaza; // Asignar la plaza actual a la fila
+                    $row[] = $currentPlaza;
+                    $row[] = $currentAcademic;
                     $filteredRows[] = $row;
                 }
             }
@@ -1093,8 +1100,10 @@ class VacanteController extends Controller
                 $programCode = $data['Clave Programática'] ?? null;
                 $experienceName = $data['Experiencia Educativa'] ?? null;
                 $numPlaza = $data['Plaza'] ?? null;
+                $reason_code=$data['Motivo RH'] ?? null;
+                $academic = $data['Academic'] ?? null;
 
-                if (empty($nrc) || empty($programCode) || empty($experienceName)) {
+                if (empty($nrc) || empty($programCode) || empty($experienceName) || empty($reason_code)){
                     Log::warning("Fila ignorada por falta de datos: " . json_encode($data));
                     continue;
                 }
@@ -1136,15 +1145,24 @@ class VacanteController extends Controller
                     'class' => $data['Clase'] ?? '',
                     'subGroup' => $data['Subgrupo'] ?? '',
                     'numPlaza' => $numPlaza,
+                    'reason_code' => $reason_code,
+                    'academic' => $academic,
                 ]);
 
                 Log::info("Vacante registrada: NRC $nrc, EE $ee_code, Program Code $programCode, Num Plaza $numPlaza");
             }
 
-            return redirect()->back()->with('status', 'success');
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Archivo CSV procesado correctamente.',
+            ]);
+
         } catch (\Exception $e) {
             Log::error("Error al procesar el CSV: " . $e->getMessage());
-            return redirect()->back()->with('status', 'error')->with('error_message', $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 }

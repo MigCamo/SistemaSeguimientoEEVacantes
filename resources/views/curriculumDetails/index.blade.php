@@ -21,7 +21,7 @@
 
     <div class="flex sm:rounded-lg md:mt-5 md:mx-10 md:my-0">
         <div class="w-3/4">
-            <p class="text-2xl font-bold">Experiencias educativas del plan de estudio {{ $curriculum->year }}</p>
+            <p class="text-2xl font-bold">Experiencias educativas del plan de estudio {{ $curriculum->year ?? Null}}</p>
         </div>
         <div class="w-1/4 flex flex-row items-end justify-end space-x-4">
             <button id="uploadCsvButton" class="text-white bg-verde-primario hover:bg-verde-primario focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">

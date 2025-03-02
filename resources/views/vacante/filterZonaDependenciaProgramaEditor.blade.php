@@ -7,7 +7,7 @@
 
                 <option value="{{$zona}}">
                     {{ $zona }} -
-                    {{DB::table('zona__dependencia__programas')->where('id_zona','=',$zona)->value('nombre_zona') }}
+                    {{DB::table('regions')->where('code','=',$zona)->value('name') }}
                 </option>
 
             </select>

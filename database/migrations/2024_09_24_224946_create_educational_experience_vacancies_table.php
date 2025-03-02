@@ -24,6 +24,8 @@ return new class extends Migration
             $table->string('class');
             $table->string('subGroup');
             $table->string('numPlaza', 10)->nullable();
+            $table->integer('reason_code');
+            $table->string('academic');
             $table->binary('content')->nullable();
             $table->timestamps();
 
@@ -32,6 +34,7 @@ return new class extends Migration
             $table->foreign('departament_code')->references('code')->on('departaments')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('educational_program_code')->references('program_code')->on('educational_programs')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('educational_experience_code')->references('code')->on('educational_experiences')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('reason_code')->references('code')->on('reasons')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

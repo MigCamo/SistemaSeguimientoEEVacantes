@@ -25,7 +25,7 @@ class StoreCurriculumRequest extends FormRequest
     public function rules()
     {
         return [
-            //'code'=> 'unique:App\Models\Curriculum,code|required|numeric|min:1',
+            'code'=> 'unique:App\Models\Curriculum,code|required|numeric|min:1',
             'year'=> 'required|string|min:4|max:4',
         ];
     }
@@ -33,9 +33,9 @@ class StoreCurriculumRequest extends FormRequest
     public function messages()
     {
         return [
-            //'code.unique' => 'El codigo de plan de estudios ya ha sido registrado',
-            //'code.required' => 'El codigo del plan de estudios es obligatorio',
-            //'year.required' => 'El año de postulacion del plan de estudios es obligatorio',
+            'code.unique' => 'El codigo de plan de estudios ya ha sido registrado',
+            'code.required' => 'El codigo del plan de estudios es obligatorio',
+            'year.required' => 'El año de postulacion del plan de estudios es obligatorio',
             'active.required' => 'El estatus del plan de estudios es obligatorio',
         ];
     }

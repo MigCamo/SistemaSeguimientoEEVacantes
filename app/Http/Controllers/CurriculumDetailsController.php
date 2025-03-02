@@ -87,7 +87,12 @@ class CurriculumDetailsController extends Controller
                             ->exists();
 
                         if (!$relationExists) {
-                            $this->store($curriculum_code, $ee_code);
+                            $request->merge([
+                                'curriculum_code' => $curriculum_code,
+                                'ee_code' => $ee_code
+                            ]);
+
+                            $this->store($request);
                         }
                     }
                 }
