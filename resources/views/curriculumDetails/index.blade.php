@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap">
     <!-- Scripts -->
     <script src="/node_modules/flowbite/dist/flowbite.min.js"></script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @vite('node_modules/flowbite/dist/flowbite.js')
     @livewireStyles
@@ -199,15 +200,20 @@
                                 {{$educationExperience->hours}}
                             </th>
                             <td class="py-4 px--20 text-center">
-                                <button type="button" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" data-modal-toggle="delete-modal{{$curriculum->code}}">
-                                    Eliminar
-                                </button>
+                                <form action="{{ route('curriculumDetails.destroy', ['ee_code' => $educationExperience->code, 'curriculum_code' => $curriculum->code]) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="bg-red-700 text-white px-4 py-2 rounded">
+                                        Eliminar
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         @php $cont++; @endphp
                     @endforeach
                 @endif
             </tbody>
+
         </table>
         {{ $educationExperiencesList->links() }}
     </div>

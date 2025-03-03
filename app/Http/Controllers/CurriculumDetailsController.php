@@ -43,19 +43,26 @@ class CurriculumDetailsController extends Controller
 
         $curriculum_ee->save();
 
-        return redirect()->route('curriculumDetails.index');
+        return redirect()->route('curriculumDetails.index', ['curriculumCode' => $request->curriculum_code]);
     }
 
     public function destroy($ee_code, $curriculum_code)
     {
-        $curriculum_ee = Curriculum_Educational_Experiences::where('curriculum_code' == $curriculum_code && 'ee_code' == $ee_code);
+        $curriculum_ee = Curriculum_Educational_Experiences::where('curriculum_code', $curriculum_code)
+            ->where('ee_code', $ee_code)
+            ->first(); // Agregar first() para obtener un solo registro
+
+        if (!$curriculum_ee) {
+            return redirect()->route('curriculumDetails.index')->with('error', 'No se encontró el registro.');
+        }
+
         $curriculum_ee->delete();
 
         $user = Auth::user();
         $data = "Eliminación de la ee: $curriculum_ee->code del plan de estudios con el id:  $curriculum_code";
-        event(new LogUserActivity($user,"Eliminación de la ee: $curriculum_ee->code del plan de estudios con el id:  $curriculum_code",$data));
+        event(new LogUserActivity($user, "Eliminación de la ee", $data));
 
-        return redirect()->route('curriculumDetails.index');
+        return redirect()->route('curriculumDetails.index', ['curriculumCode' => $curriculum_code])->with('success', 'Registro eliminado.');
     }
 
     public function uploadCsv(Request $request)
