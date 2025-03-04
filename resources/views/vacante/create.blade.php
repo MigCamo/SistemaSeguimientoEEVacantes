@@ -169,9 +169,22 @@
                                                required>
                                     </div>
 
+                                    <div class="col-span-6">
+                                        <label for="academic" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">
+                                            Académico Titular
+                                        </label>
+                                        <select id="academic" name="academic" class="estiloSelect">
+                                            <option value="">Selecciona al académico</option>
+                                            @foreach ($docentes as $data)
+                                                <option value="{{ $data->staff_number . ' - ' . $data->name . ' ' . $data->lastname . ' ' . $data->maternal_surname }}">
+                                                    {{ $data->name }} {{ $data->lastname }} {{ $data->maternal_surname }} - {{ $data->staff_number }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
 
                                     <div class="col-span-6">
-                                        <label for="numPersonalDocente" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Docente</label>
+                                        <label for="numPersonalDocente" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Docente Sustituto</label>
                                         <select  id="numPersonalDocente" name="numPersonalDocente" class="estiloSelect">
                                             <option value="">Selecciona al docente</option>
                                             @foreach ($docentes as $data)
@@ -181,8 +194,6 @@
                                             @endforeach
                                         </select>
                                     </div>
-
-
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
                                         <label for="fechaAviso" class="labelForms">Fecha de aviso</label>
@@ -295,7 +306,7 @@
 
                                     <div class="col-span-6">
                                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file">Documento</label>
-                                        <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" 
+                                        <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
                                             aria-describedby="file_input_help" id="file" type="file" accept=".pdf" name="file">
                                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">
                                             Formato permitido: PDF | Tamaño máximo: 2MB
@@ -323,7 +334,7 @@
 
     </div>
 
-    
+
 </body>
 </html>
 

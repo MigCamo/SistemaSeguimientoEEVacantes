@@ -337,26 +337,28 @@ class VacanteController extends Controller
             $vacante->class = $request->grupo;
             $vacante->subGroup = $request->subgrupo;
             $vacante->numPlaza = $request->numPlaza;
+            $vacante->reason_code = $request->numMotivo;
+            $vacante->academic = $request->academic;
+
 
             // 2. Guardar el PDF en la base de datos si se subió
-            if (!$request->hasFile('file')) {
-                throw new \Exception("Es obligatorio adjuntar un archivo PDF.");
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+
+                // Validar que el archivo sea un PDF
+                if ($file->getClientOriginalExtension() !== 'pdf') {
+                    throw new \Exception("El archivo debe ser un PDF.");
+                }
+
+                // Validar el tamaño del archivo (máximo 2MB)
+                if ($file->getSize() > 2 * 1024 * 1024) { // 2MB
+                    throw new \Exception("El archivo no debe superar los 2MB.");
+                }
+
+                // Convertir el archivo a binario y guardarlo en el campo `content`
+                $vacante->content = file_get_contents($file->getRealPath());
             }
 
-            $file = $request->file('file');
-
-            // Validar que el archivo sea un PDF
-            if ($file->getClientOriginalExtension() !== 'pdf') {
-                throw new \Exception("El archivo debe ser un PDF.");
-            }
-
-            // Validar el tamaño del archivo (máximo 2MB)
-            if ($file->getSize() > 2 * 1024 * 1024) { // 2MB
-                throw new \Exception("El archivo no debe superar los 2MB.");
-            }
-
-            // Convertir el archivo a binario y guardarlo en el campo `content`
-            $vacante->content = file_get_contents($file->getRealPath());
 
             $vacante->save();
 
@@ -364,7 +366,6 @@ class VacanteController extends Controller
             $assignedVacancy = new AssignedVacancy();
             $assignedVacancy->ee_vacancy_code = $vacante->nrc; // Se usa el NRC generado
             $assignedVacancy->lecturer_code = $request->numPersonalDocente;
-            $assignedVacancy->reason_code = $request->numMotivo;
             $assignedVacancy->type_asignation_code = $request->tipoAsignacion;
             $assignedVacancy->noticeDate = !empty($request->fechaAviso) ? Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d') : null;
             $assignedVacancy->assignmentDate = !empty($request->fechaAsignacion) ? Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d') : null;

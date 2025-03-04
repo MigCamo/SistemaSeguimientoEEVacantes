@@ -58,109 +58,58 @@
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-                <th scope="col" class="py-3 px-6">
-                    Programa
-                </th>
-                <th scope="col" class="py-3 px-6">
-                    Experiencia Educativa
-                </th>
-                <th scope="col" class="py-3 px-6">
-                    Horas
-                </th>
-                <th scope="col" class="py-3 px-6">
-                    Contratación
-                </th>
-                <th scope="col" class="py-3 px-6">
-                    Docente
-                </th>
-                <th scope="col" class="py-3 px-6">
-                    Archivo
-                </th>
-                <th scope="col" class="py-3 px-6">
-                    <span class="sr-only">Ver Información</span>
-                </th>
-                <th scope="col" class="py-3 px-6">
-                    <span class="sr-only">Editar</span>
-                </th>
-
-                @if ( Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin') )
-
-                    <th scope="col" class="py-3 px-6">
-                        <span class="sr-only">Eliminar</span>
-                    </th>
-
+                <th scope="col" class="py-3 px-4">Programa</th>
+                <th scope="col" class="py-3 px-4">Dependencia</th>
+                <th scope="col" class="py-3 px-4">Experiencia Educativa</th>
+                <th scope="col" class="py-3 px-4">Horas</th>
+                <th scope="col" class="py-3 px-4">Periodo</th>
+                <th scope="col" class="py-3 px-4">Académico Titular</th>
+                <th scope="col" class="py-3 px-4">Archivo</th>
+                <th scope="col" class="py-3 px-2 text-right"><span class="sr-only">Ver Información</span></th>
+                <th scope="col" class="py-3 px-2 text-right"><span class="sr-only">Editar</span></th>
+                @if (Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin'))
+                    <th scope="col" class="py-3 px-2 text-right"><span class="sr-only">Eliminar</span></th>
                 @endif
             </tr>
             </thead>
             <tbody>
-
-            @if(count($vacantes)<=0)
+            @if(count($vacantes) <= 0)
                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <td class="py-4 px-6">
-                        No se han encontrado vacantes
-                    </td>
+                    <td class="py-4 px-6 text-center" colspan="9">No se han encontrado vacantes</td>
                 </tr>
             @else
                 @foreach($vacantes as $vacante)
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-
-                        <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                        <th scope="row" class="py-4 px-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                             {{$vacante->educational_program_code}} -
                             {{DB::table('educational_programs')->join('regions_educational_programs','educational_programs.program_code', '=', 'regions_educational_programs.educational_program_code')->where('educational_programs.program_code', $vacante->educational_program_code)->value('name') }}
-
                         </th>
+                        <td class="py-4 px-4">{{$vacante->departament_code}} - {{DB::table('departaments')->where('code',$vacante->departament_code)->value('name')}}</td>
+                        <td class="py-4 px-4">{{$vacante->name}}</td>
+                        <td class="py-4 px-4">{{$vacante->hours}}</td>
+                        <td class="py-4 px-4">{{$vacante->school_period_code}} - {{DB::table('school_Periods')->where('code',$vacante->school_period_code)->value('description')}}</td>
+                        <td class="py-4 px-4">{{$vacante->academic}}</td>
+                        <td class="py-4 px-4">{{ $vacante->content ? 'Disponible' : 'Sin Archivo' }}</td>
 
-                        <td class="py-4 px-6">
-                            {{$vacante->name}}
+                        <td class="py-4 px-2 text-right whitespace-nowrap">
+                            <button type="button" class="focus:outline-none text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-900" data-modal-toggle="view-modal{{$vacante->nrc}}">
+                                Ver Info
+                            </button>
                         </td>
 
-                        <td class="py-4 px-6">
-                            {{$vacante->hours}}
+                        <td class="py-4 px-2 text-right whitespace-nowrap">
+                            <a href="{{route('vacante.edit',$vacante->nrc)}}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                                Editar
+                            </a>
                         </td>
 
-                        @if ( Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin') )
-
-                            <td class="py-4 px-2 text-right">
-                                <button type="button"
-                                        class="focus:outline-none text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-900"
-                                        data-modal-toggle="view-modal{{$vacante->nrc}}">Ver Info</button>
+                        @if (Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin'))
+                            <td class="py-4 px-2 text-right whitespace-nowrap">
+                                <button type="button" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" data-modal-toggle="delete-modal{{$vacante->nrc}}">
+                                    Cerrar EE
+                                </button>
                             </td>
-
-                            <td class="py-4 px-2 text-right">
-                                <a href="{{route('vacante.edit',$vacante->nrc)}}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Editar</a>
-                            </td>
-                            <td class="py-4 px-2 text-right">
-                                <button type="button"
-                                        class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-                                        data-modal-toggle="delete-modal{{$vacante->nrc}}">Cerrar EE</button>
-                            </td>
-
-                        @else
-
-                            @if($isDeleted)
-
-                                <td class="py-4 px-2 text-right">
-                                    <button type="button"
-                                            class="focus:outline-none text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-900"
-                                            data-modal-toggle="view-modal{{$vacante->id}}">Ver Info</button>
-                                </td>
-
-                            @else
-
-                                <td class="py-4 px-2 text-right">
-                                    <button type="button"
-                                            class="focus:outline-none text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-900"
-                                            data-modal-toggle="view-modal{{$vacante->id}}">Ver Info</button>
-                                </td>
-
-                                <td class="py-4 px-2 text-right">
-                                    <a href="{{route('vacante.edit',$vacante->id)}}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Editar</a>
-                                </td>
-
-                            @endif
-
                         @endif
-
                     </tr>
                     @include('vacante.modalConfirmacionEliminar')
                     @include('vacante.modalVisualizarVacante')

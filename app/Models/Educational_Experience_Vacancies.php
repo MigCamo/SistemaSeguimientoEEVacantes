@@ -57,6 +57,11 @@ class Educational_Experience_Vacancies extends Model
     {
         return $this->belongsTo(EducationalProgram::class, 'educational_program_code', 'program_code');
     }
+
+    public function reason()
+    {
+        return $this->belongsTo(Reason::class, 'reason_code', 'code');
+    }
     // Puedes añadir otras relaciones, scopes o métodos específicos si los necesitas
 }
 
