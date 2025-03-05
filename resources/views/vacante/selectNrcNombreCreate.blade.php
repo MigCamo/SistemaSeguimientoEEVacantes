@@ -3,8 +3,8 @@
     <select  id="numMateria-dropdown" name="numMateria" class="estiloSelect" required>
         <option value="">Selecciona la experiencia educativa</option>
         @foreach ($experienciasEducativas as $data)
-            <option value="{{$data->numMateria}}~{{$data->nombre}}">
-                {{$data->numMateria}}~{{$data->nombre}}
+            <option value="{{$data->code}}">
+                {{$data->code}}~{{$data->name}}
             </option>
         @endforeach
     </select>
@@ -34,7 +34,7 @@
                 dataType: 'json',
                 success: function (result) {
                     $.each(result.horasExperienciaEducativa, function (key, value) {
-                        $("#numHoras-dropdown").html('<option value="' + value.horas + '">' + value.horas + '</option>');
+                        $("#numHoras-dropdown").html('<option value="' + value.hours + '">' + value.hours + '</option>');
                     });
                 }
             });

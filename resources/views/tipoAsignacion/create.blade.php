@@ -54,14 +54,14 @@
                                 @csrf
 
                                 <div class="col-span-6">
-                                    <label for="tipo" class="labelForms">Tipo de Asignación</label>
-                                    <input type="text" name="tipo" value="{{ old('tipo') }}" id="tipo" class="inputForms"
+                                    <label for="type_asignation" class="labelForms">Tipo de Asignación</label>
+                                    <input type="text" name="type_asignation" value="{{ old('type_asignation') }}" id="type_asignation" class="inputForms"
                                            placeholder="Ej. Carga obligatoria" required>
                                 </div>
 
                                 <div class="col-span-6">
-                                    <label for="descripcion" class="labelForms">Descripción</label>
-                                    <input type="text" name="descripcion" value="{{ old('descripcion') }}" id="descripcion" class="inputForms"
+                                    <label for="description" class="labelForms">Descripción</label>
+                                    <input type="text" name="description" value="{{ old('description') }}" id="description" class="inputForms"
                                            placeholder="Ej. Consiste en...">
                                 </div>
 

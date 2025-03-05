@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\EducationalExperience;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreExperienciaEducativaRequest extends FormRequest
@@ -25,21 +26,21 @@ class StoreExperienciaEducativaRequest extends FormRequest
     public function rules()
     {
         return [
-            'codMateria'=> 'unique:App\Models\ExperienciaEducativa,codMateria|required|string|min:1',
-            //'nrc'=> 'unique:App\Models\ExperienciaEducativa,nrc|nullable|numeric|min:1',
-            'nombre'=> 'required|string|min:1',
-            'horas'=> 'required|string|min:1',
+            'code'=> 'unique:App\Models\EducationalExperience,code|required|string|min:1',
+            'name'=> 'required|string|min:1',
+            'hours'=> 'required|string|min:1',
         ];
     }
 
     public function messages()
     {
         return [
-          'codMateria.required' => 'El código de la Experiencia Educativa es obligatorio',
-          'codMateria.unique' => 'El código de materia ingresado ya ha sido registrado',
+          'code.required' => 'El código de la Experiencia Educativa es obligatorio',
+          'code.unique' => 'El código de materia ingresado ya ha sido registrado',
           //'nrc.unique' => 'El NRC ingresado ya ha sido registrado',
-          'nombre.required' => 'El nombre es obligatorio',
-          'horas.required' => 'El número de horas es obligatorio',
+          'name.required' => 'El nombre es obligatorio',
+          'hours.required' => 'El número de horas es obligatorio',
+          'hours.numeric' => 'El número de horas debe de ser un valor numérico'
         ];
     }
 

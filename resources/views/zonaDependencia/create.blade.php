@@ -51,7 +51,7 @@
                     @endforeach
                 @endif
 
-                <form action="{{ route('zonaDependencia.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('LL.store') }}" method="POST" enctype="multipart/form-data">
                     <div class="overflow-hidden shadow sm:rounded-md">
                         <div class="bg-white px-4 py-5 sm:p-6">
                             <div class="grid grid-cols-6 gap-6">

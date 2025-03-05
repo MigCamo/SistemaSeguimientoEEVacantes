@@ -83,35 +83,6 @@
                     <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white font-medium">Documento(s)
                         actual(es)</label>
 
-                    @foreach ($files as $file)
-                        <div class="gap-6">
-                            <a class="font-medium text-blue-600 underline dark:text-blue-500 hover:no-underline"
-                               target="_blank"
-                               href="https://gestionvacantes.blob.core.windows.net/files/{{$file["name"]}}">{{$file["name"]}}
-                            </a>
-                                <?php
-                                $archivo = $file["name"];
-                                $archivoPartes = explode("/", $archivo);
-                                $vacanteArchivo = $archivoPartes[0];
-                                $nombreArchivo = $archivoPartes[1];
-                                ?>
-
-                            <form
-                                action="{{ route('vacante.deleteFile',['id' =>$vacanteArchivo,'file' => $nombreArchivo ]) }}"
-                                method="POST">
-                                @csrf
-                                <button type="submit"
-                                        class="px-6 font-medium text-red-600 underline dark:text-blue-500 hover:no-underline">
-                                    Eliminar
-                                </button>
-                            </form>
-
-                            <br>
-                        </div>
-                    @endforeach
-
-
-
                     @include('vacante.createDocente')
                     @include('vacante.createEE')
 
@@ -138,7 +109,7 @@
                     @endforeach
                 @endif
 
-                <form action="{{ route('vacante.update',$vacante->id) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('vacante.update',$vacante->nrc) }}" method="POST" enctype="multipart/form-data">
                     <div class="overflow-hidden shadow sm:rounded-md">
                         <div class="bg-white px-4 py-5 sm:p-6">
                             <div class="grid grid-cols-6 gap-6">
@@ -149,11 +120,10 @@
                                            class="block text-sm font-medium text-gray-900 dark:text-gray-400">Periodo</label>
                                     <select id="periodo" name="periodo" class="estiloSelect">
                                         <option
-                                            value="{{$vacante->periodo}}-{{$vacante->clavePeriodo}}">{{$vacante->periodo}}
-                                            -{{$vacante->clavePeriodo}}</option>
+                                            value="{{$periodoAsignado->code}}">{{$periodoAsignado->period_number}}-{{$periodoAsignado->description}}</option>
                                         @foreach ($periodos as $data)
-                                            <option value="{{$data->nPeriodo}}-{{$data->clavePeriodo}}">
-                                                {{$data->nPeriodo}}-{{$data->clavePeriodo}}-{{$data->descripcion}}
+                                            <option value="{{$data->code}}">
+                                                {{$data->period_number}}-{{$data->description}}
                                             </option>
                                         @endforeach
                                     </select>
@@ -172,9 +142,9 @@
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
                                     <label for="grupo" class="labelForms">NRC</label>
-                                    <input type="text" name="grupo" id="grupo" class="inputForms"
+                                    <input type="text" name="nrc" id="nrc" class="inputForms"
                                            required
-                                           value="{{$vacante->grupo}}">
+                                           value="{{$vacante->nrc}}">
                                 </div>
 
                                 {{--
@@ -186,25 +156,25 @@
                                 </div>
                                 --}}
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                    <label for="numPlaza" class="labelForms">Número de plaza</label>
-                                    <input type="number" name="numPlaza" id="numPlaza" class="inputForms"
-                                           required value="{{$vacante->numPlaza}}">
+                                    <label for="numPlaza" class="labelForms">Grupo</label>
+                                    <input type="number" name="grupo" id="grupo" class="inputForms"
+                                           required value="{{$vacante->class}}">
                                 </div>
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                    <label for="plan" class="labelForms">Plan</label>
-                                    <input type="number" name="plan" id="plan" class="inputForms"
-                                           value="{{$vacante->plan}}">
+                                    <label for="plan" class="labelForms">SubGrupo</label>
+                                    <input type="number" name="subGrupo" id="subGrupo" class="inputForms"
+                                           value="{{$vacante->subGroup}}">
                                 </div>
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
                                     <label for="numMotivo"
                                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Motivo</label>
                                     <select id="numMotivo" name="numMotivo" class="estiloSelect" required>
-                                        <option value="{{$vacante->numMotivo}}">{{$vacante->numMotivo}}</option>
+                                        <option value="{{$motivoSeleccionado->code ?? '' }}">{{($motivoSeleccionado->code ?? '') . '-' . ($motivoSeleccionado->name ?? '')}}</option>
                                         @foreach ($motivos as $data)
-                                            <option value="{{$data->numeroMotivo}}">
-                                                {{$data->numeroMotivo}} {{$data->nombre}}
+                                            <option value="{{$data->code}}">
+                                                {{$data->code}}-{{$data->name}}
                                             </option>
                                         @endforeach
                                     </select>
@@ -216,11 +186,20 @@
                                         de Contratación</label>
                                     <select id="tipoContratacion" name="tipoContratacion" class="estiloSelect">
                                         <option
-                                            value="{{$vacante->tipoContratacion}}">{{$vacante->tipoContratacion}}</option>
-                                        <option value="IOD">Planta</option>
+                                        value="{{ $vacanteAsignada->type_contract ?? '' }}">{{ $vacanteAsignada->type_contract ?? '' }}</option>
+                                        <option value="PLANTA">Planta</option>
                                         <option value="IOD">Contratación IOD</option>
                                         <option value="IPP">Contratación IPP</option>
+                                        <option value="IPPL">Contratación IPPL</option>
                                     </select>
+                                </div>
+
+                                <div class="col-span-6 sm:col-span-2 lg:col-span-2">
+                                    <label for="grupo" class="labelForms">Número de plaza</label>
+                                    <input type="text" name="numPlaza" id="numPlaza" class="inputForms"
+                                        value="{{ optional($vacante)->numPlaza ?? '' }}"
+                                        placeholder=""
+                                        required>
                                 </div>
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
@@ -229,10 +208,10 @@
                                         de Asignación</label>
                                     <select id="tipoAsignacion" name="tipoAsignacion" class="estiloSelect">
                                         <option
-                                            value="{{$vacante->tipoAsignacion}}">{{$vacante->tipoAsignacion}}</option>
+                                            value="{{ $vacanteAsignada->type_asignation_code ?? '' }}">{{ $vacanteAsignada->type_asignation_code ?? '' }}
                                         @foreach ($tiposAsignacion as $data)
-                                            <option value="{{$data->tipo}}">
-                                                {{$data->tipo}}
+                                            <option value="{{$data->id}}">
+                                                {{$data->type_asignation}}
                                             </option>
                                         @endforeach
                                     </select>
@@ -279,9 +258,11 @@
                                             </svg>
                                         </div>
                                         <input datepicker datepicker-format="dd/mm/yyyy" type="text"
-                                               class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                               value="{{$vacante->fechaAviso}}" id="fechaAviso"
-                                               name="fechaAviso">
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            value="{{ $vacanteAsignada && $vacanteAsignada->noticeDate ? \Carbon\Carbon::parse($vacanteAsignada->noticeDate)->format('d/m/Y') : '' }}"
+                                            id="fechaAviso"
+                                            name="fechaAviso">
+
                                     </div>
                                 </div>
 
@@ -299,9 +280,11 @@
                                             </svg>
                                         </div>
                                         <input datepicker datepicker-format="dd/mm/yyyy" type="text"
-                                               class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                               value="{{$vacante->fechaAsignacion}}" id="fechaAsignacion"
-                                               name="fechaAsignacion">
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            value="{{ $vacanteAsignada && $vacanteAsignada->assignmentDate ? \Carbon\Carbon::parse($vacanteAsignada->assignmentDate)->format('d/m/Y') : '' }}"
+                                            id="fechaAsignacion"
+                                            name="fechaAsignacion">
+
                                     </div>
                                 </div>
 
@@ -319,9 +302,11 @@
                                             </svg>
                                         </div>
                                         <input datepicker datepicker-format="dd/mm/yyyy" type="text"
-                                               class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                               value="{{$vacante->fechaApertura}}" id="fechaApertura"
-                                               name="fechaApertura">
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            value="{{ optional($vacanteAsignada)->openingDate ? \Carbon\Carbon::parse($vacanteAsignada->openingDate)->format('d/m/Y') : '' }}"
+                                            id="fechaApertura"
+                                            name="fechaApertura">
+
                                     </div>
                                 </div>
 
@@ -339,9 +324,11 @@
                                             </svg>
                                         </div>
                                         <input datepicker datepicker-format="dd/mm/yyyy" type="text"
-                                               class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                               value="{{$vacante->fechaCierre}}" id="fechaCierre"
-                                               name="fechaCierre">
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            value="{{ optional($vacanteAsignada)->closingDate ? \Carbon\Carbon::parse($vacanteAsignada->closingDate)->format('d/m/Y') : '' }}"
+                                            id="fechaCierre"
+                                            name="fechaCierre">
+
                                     </div>
                                 </div>
 
@@ -359,9 +346,10 @@
                                             </svg>
                                         </div>
                                         <input datepicker datepicker-format="dd/mm/yyyy" type="text"
-                                               class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                               value="{{$vacante->fechaRenuncia}}" id="fechaRenuncia"
-                                               name="fechaRenuncia">
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            value="{{ optional($historicoDocentesReciente)->fechaRenuncia ? \Carbon\Carbon::parse($historicoDocentesReciente->fechaRenuncia)->format('d/m/Y') : '' }}"
+                                            id="fechaRenuncia"
+                                            name="fechaRenuncia">
                                     </div>
                                 </div>
 
@@ -370,23 +358,13 @@
                                     <div class="mt-1">
                                         <textarea id="observaciones" name="observaciones" rows="3"
                                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                                  placeholder="Ej. Alguna observación">{{$vacante->observaciones}}</textarea>
+                                                  placeholder="Ej. Alguna observación">{{ optional($vacanteAsignada)->notes ?? '' }}</textarea>
                                     </div>
                                 </div>
 
                                 <div class="col-span-6">
                                     <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                                            for="file">Documento(s) actual(es)</label>
-
-                                    @foreach ($files as $file)
-                                        <div class="gap-6">
-                                            <a class="font-medium text-blue-600 underline dark:text-blue-500 hover:no-underline"
-                                               target="_blank"
-                                               href="https://gestionvacantes.blob.core.windows.net/files/{{$file["name"]}}">{{$file["name"]}}
-                                            </a>
-                                            <br>
-                                        </div>
-                                    @endforeach
                                     <input
                                         class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
                                         aria-describedby="file_input_help" id="file" type="file" accept=".pdf"

@@ -102,19 +102,19 @@
             <tr>
 
                 <td>
-                    {{$vacante->numPrograma}}-{{DB::table('zona__dependencia__programas')->where('clave_programa',$vacante->numPrograma)->value('nombre_programa')}}
+                    {{$vacante->educational_program_code}}-{{DB::table('educational_programs')->where('program_code',$vacante->educational_program_code)->value('name')}}
                 </td>
 
                 <td>
-                    {{$vacante->numHoras}}
+                    {{$vacante->numPlaza}}
                 </td>
 
                 <td>
-                    {{$vacante->numMateria}} - {{$vacante->nombreMateria}}
+                    {{$vacante->educational_experience_code}}-{{DB::table('educational_experiences')->where('code',$vacante->educational_experience_code)->value('name')}}
                 </td>
 
                 <td>
-                    {{DB::table('motivos')->where('numeroMotivo',$vacante->numMotivo)->value('nombre')}}
+                    {{DB::table('reasons')->where('code',$vacante->numPlaza)->value('name')}}
                 </td>
 
             </tr>

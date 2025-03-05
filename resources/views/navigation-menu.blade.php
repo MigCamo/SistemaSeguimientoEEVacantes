@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+_<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -19,28 +19,20 @@
 
                     @if ( Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin') )
 
-                        <x-jet-nav-link href="{{ route('vacante.import') }}" :active="request()->routeIs('vacante.import')" title="Carga de la base de datos">
-                            {{ __('Cargar CSV') }}
-                        </x-jet-nav-link>
-
                         <x-jet-nav-link href="{{ route('vacante.index') }}" :active="request()->routeIs('vacante.index')" title="Gestión de las Experiencias Educativas Vacantes">
-                            {{ __('E.E. Vacantes') }}
-                        </x-jet-nav-link>
-
-                        <x-jet-nav-link href="{{ route('zonaDependencia.index') }}" :active="request()->routeIs('zonaDependencia.index')" title="Gestión de las Dependencias">
-                            {{ __('Dependencias') }}
-                        </x-jet-nav-link>
-
-                        <x-jet-nav-link href="{{ route('zonaDependenciaPrograma.index') }}" :active="request()->routeIs('zonaDependenciaPrograma.index')" title="Gestión de los Programas Educativos">
-                            {{ __('Programas Educ.') }}
+                            {{ __('Vacantes') }}
                         </x-jet-nav-link>
 
                         <x-jet-nav-link href="{{ route('experienciaEducativa.index') }}" :active="request()->routeIs('experienciaEducativa.index')" title="Gestión de Experiencias Educativas">
                             {{ __('E.E') }}
                         </x-jet-nav-link>
 
-                        <x-jet-nav-link href="{{ route('docente.index') }}" :active="request()->routeIs('docente.index')" title="Gestión de Docentes">
-                            {{ __('Docentes') }}
+                        <x-jet-nav-link href="{{ route('zonaDependencia.index') }}" :active="request()->routeIs('zonaDependencia.index')" title="Gestión de las Dependencias">
+                            {{ __('Dependencias') }}
+                        </x-jet-nav-link>
+
+                        <x-jet-nav-link href="{{ route('educationalPrograms.index') }}" :active="request()->routeIs('educationalPrograms.index')" title="Gestión de los Programas Educativos">
+                            {{ __('Programas Educ.') }}
                         </x-jet-nav-link>
 
                         <div class="hidden sm:flex sm:items-center sm:ml-l">
@@ -49,60 +41,50 @@
 
                                 <x-slot name="trigger">
 
-                            <span class="inline-flex rounded-md">
-                            <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition">
-                                Ver más
-
-                                <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </span>
+                                    <span class="inline-flex rounded-md">
+                                        <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition">
+                                            Ver más
+                                            <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </span>
 
                                 </x-slot>
 
                                 <x-slot name="content">
+                                    <x-jet-dropdown-link href="{{ route('lecturer.index') }}" title="Gestión de Docentes">
+                                        {{ __('Docentes') }}
+                                    </x-jet-dropdown-link>
 
-                                    <x-jet-dropdown-link href="{{ route('periodo.index') }}" title="Gestión de Periodos">
+                                    <x-jet-dropdown-link href="{{ route('schoolPeriod.index') }}" title="Gestión de Periodos">
                                         {{ __('Periodos') }}
+                                    </x-jet-dropdown-link>
+
+                                    <x-jet-dropdown-link href="{{ route('region.index') }}" title="Gestión de las Zonas">
+                                        {{ __('Zonas') }}
+                                    </x-jet-dropdown-link>
+
+                                    <x-jet-dropdown-link href="{{ route('reason.index') }}" title="Gestión de los Motivos">
+                                        {{ __('Motivos') }}
                                     </x-jet-dropdown-link>
 
                                     <x-jet-dropdown-link href="{{ route('tipoAsignacion.index') }}" title="Gestión de los Tipos de Asignación">
                                         {{ __('Tipo de Asignación') }}
                                     </x-jet-dropdown-link>
 
-                                    <x-jet-dropdown-link href="{{ route('motivo.index') }}" title="Gestión de los Motivos">
-                                        {{ __('Motivos') }}
-                                    </x-jet-dropdown-link>
-
-                                    <x-jet-dropdown-link href="{{ route('zona.index') }}" title="Gestión de las Zonas">
-                                        {{ __('Zonas') }}
-                                    </x-jet-dropdown-link>
-
                                     <x-jet-dropdown-link href="{{ route('bitacora.index') }}" title="Historial de Operaciones en el Sistema">
                                         {{ __('Bitácora') }}
                                     </x-jet-dropdown-link>
-
                                 </x-slot>
 
                             </x-jet-dropdown>
-
-
                         </div>
-
-
-
                     @else
-
                         <x-jet-nav-link href="{{ route('vacante.index') }}" :active="request()->routeIs('vacante.index')">
                             {{ __('E.E. Vacantes') }}
                         </x-jet-nav-link>
-
                     @endif
-
-
-
-
                 </div>
             </div>
 
@@ -136,13 +118,6 @@
                                         {{ __('Configuración de equipo') }}
                                     </x-jet-dropdown-link>
 
-                                    {{--
-                                    @can('create', Laravel\Jetstream\Jetstream::newTeamModel())
-                                        <x-jet-dropdown-link href="{{ route('teams.create') }}">
-                                            {{ __('Crear nuevo equipo') }}
-                                        </x-jet-dropdown-link>
-                                    @endcan
-                                    --}}
                                     @if ( Auth::user()->hasTeamRole(auth()->user()->currentTeam, 'admin') )
                                         <x-jet-dropdown-link href="{{ route('teams.create') }}">
                                             {{ __('Crear nuevo equipo') }}
@@ -191,8 +166,8 @@
                             <!-- Account Management -->
                             <div class="block px-4 py-2 text-xs text-gray-400">
                                 {{ __('Administrar cuenta') }}
-                                <p><span class="font-bold"> {{$nombreDependencia = DB::table('zona__dependencias')->select('nombre_dependencia')->where('clave_dependencia','=',Auth::user()->dependencia)->value('nombre_dependencia');}} </span> </p>
-                                <p><span class="font-bold"> {{$nombreZona = DB::table('zonas')->where('id','=',Auth::user()->zona)->value('nombre')}} </span> </p>
+                                <p><span class="font-bold"> {{$nombreDependencia = DB::table('departaments')->select('name')->where('code','=',Auth::user()->dependencia)->value('name');}} </span> </p>
+                                <p><span class="font-bold"> {{$nombreZona = DB::table('regions')->where('code','=',Auth::user()->zona)->value('name')}} </span> </p>
                             </div>
 
                             <x-jet-dropdown-link href="{{ route('profile.show') }}">

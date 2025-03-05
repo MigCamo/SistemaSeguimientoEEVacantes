@@ -17,21 +17,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-         //\App\Models\User::factory(10)->withPersonalTeam()->create();
-         //User::factory(10)->create();
-         //Team::factory(10)->create();
-         //Docente::factory(count: 10)->create();
-/*         \App\Models\User::factory()->create([
-             'name' => 'Test User',
-            'email' => 'test@example.com',
-         ]);*/
-
         $this->call([
-            MotivoSeeder::class,
-            ZonaSeeder::class,
-            ZonaDependenciaSeeder::class,
-            PeriodoSeeder::class,
+            RegionSeeder::class,
+            ReasonSeeder::class,
+            SchoolPeriodSeeder::class,
+            TypeAsignationSeeder::class,
+            DepartamentSeeder::class,
+            EducationalExperienceSeeder::class,
+            EducationalProgramSeeder::class,
         ]);
-
+/*
+        \App\Models\User::factory()->create([
+            'name' => 'Fernando Elotlan',
+            'email' => 'ferelomor@gmail.com',
+            'password' => bcrypt('Unshowmas13-'), // Asegúrate de encriptar la contraseña
+        ]);*/
     }
 }

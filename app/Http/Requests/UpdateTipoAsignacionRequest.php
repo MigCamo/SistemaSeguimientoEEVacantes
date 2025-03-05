@@ -25,22 +25,21 @@ class UpdateTipoAsignacionRequest extends FormRequest
     public function rules()
     {
         return [
-            //'tipo'=> 'required|string|min:1',
-            'tipo' => [
+            'type_asignation' => [
                 'required',
                 'string',
                 'min:1',
-                Rule::unique('tipo_asignacions')->ignore($this->route('id')),
+                Rule::unique('type_asignations')->ignore($this->route('type_asignation')),
             ],
-            'descripcion'=> 'nullable|string|min:1',
+            'description'=> 'nullable|string|min:1',
         ];
     }
 
     public function messages()
     {
         return [
-            'tipo.required' => 'El tipo de asignaciones obligatorio',
-            'tipo.unique' => 'El tipo de asignación ingresado ya ha sido registrado',
+            'type_asignation.required' => 'El tipo de asignaciones es obligatorio',
+            'type_asignation.unique' => 'El tipo de asignación ingresado ya ha sido registrado',
         ];
     }
 }

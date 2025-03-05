@@ -33,7 +33,7 @@
                         <p class="mt-1 text-sm text-gray-600">Por favor ingresa los datos solicitados.</p><br>
                         <p><b>Recuerda que los datos obligatiorios son:</b></p>
                         <li>Periodo</li>
-                        <li>Zona</li>
+                        <li>Region</li>
                         <li>Dependencia</li>
                         <li>Programa educativo</li>
                         <li>Experiencia Educativa</li>
@@ -88,10 +88,10 @@
                                     <div class="col-span-6 sm:col-span-3 lg:col-span-3" >
                                         <label for="periodo" class="block text-sm font-medium text-gray-900 dark:text-gray-400">Periodo</label>
                                         <select  id="periodo" name="periodo" class="estiloSelect" required>
-                                            <option value="">Selecciona el periodo</option>
+                                        <option value="">Selecciona el periodo</option>
                                             @foreach ($periodos as $data)
-                                                <option value="{{$data->nPeriodo}}-{{$data->clavePeriodo}}">
-                                                    {{$data->nPeriodo}}-{{$data->clavePeriodo}}-{{$data->descripcion}}
+                                                <option value="{{$data->code}}">
+                                                    {{$data->period_number}}-{{$data->code}}-{{$data->description}}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -110,20 +110,20 @@
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
                                         <label for="grupo" class="labelForms">NRC</label>
-                                        <input type="text" name="grupo" id="grupo" class="inputForms"
+                                        <input type="text" name="nrc" id="nrc" class="inputForms"
                                                placeholder=""
                                                required>
                                     </div>
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                        <label for="numPlaza" class="labelForms">Número de plaza</label>
-                                        <input type="number" name="numPlaza" id="numPlaza" class="inputForms"
+                                        <label for="grupo" class="labelForms">Grupo</label>
+                                        <input type="number" name="grupo" id="grupo" class="inputForms"
                                                placeholder="Ej. 1523" required>
                                     </div>
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                        <label for="plan" class="labelForms">Plan</label>
-                                        <input type="number" name="plan" id="plan" class="inputForms" placeholder="Ej. ">
+                                        <label for="plan" class="labelForms">Subgrupo</label>
+                                        <input type="number" name="subgrupo" id="subgrupo" class="inputForms" placeholder="Ej. ">
                                     </div>
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
@@ -131,8 +131,8 @@
                                         <select  id="numMotivo" name="numMotivo" class="estiloSelect" required>
                                             <option value="">Selecciona el motivo</option>
                                             @foreach ($motivos as $data)
-                                                <option value="{{$data->numeroMotivo}}">
-                                                    {{$data->numeroMotivo}} {{$data->nombre}}
+                                                <option value="{{$data->code}}">
+                                                    {{$data->code}}-{{$data->name}}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -145,6 +145,7 @@
                                             <option value="Planta">Planta</option>
                                             <option value="IOD">Contratación IOD</option>
                                             <option value="IPP">Contratación IPP</option>
+                                            <option value="IPPL">Contratación IPPL</option>
                                         </select>
                                     </div>
 
@@ -154,15 +155,45 @@
                                         <select  id="tipoAsignacion" name="tipoAsignacion" class="estiloSelect">
                                             <option value="">Selecciona el tipo de asignación</option>
                                             @foreach ($tiposAsignacion as $data)
-                                                <option value="{{$data->tipo}}">
-                                                    {{$data->tipo}}
+                                                <option value="{{$data->id}}">
+                                                    {{$data->id}}-{{$data->type_asignation}}
+                                                </option>                                            @endforeach
+                                        </select>
+                                    </div>
+
+
+                                    <div class="col-span-6 sm:col-span-2 lg:col-span-2">
+                                        <label for="grupo" class="labelForms">Número de plaza</label>
+                                        <input type="text" name="numPlaza" id="numPlaza" class="inputForms"
+                                               placeholder=""
+                                               required>
+                                    </div>
+
+                                    <div class="col-span-6">
+                                        <label for="academic" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">
+                                            Académico Titular
+                                        </label>
+                                        <select id="academic" name="academic" class="estiloSelect">
+                                            <option value="">Selecciona al académico</option>
+                                            @foreach ($docentes as $data)
+                                                <option value="{{ $data->staff_number . ' - ' . $data->name . ' ' . $data->lastname . ' ' . $data->maternal_surname }}">
+                                                    {{ $data->name }} {{ $data->lastname }} {{ $data->maternal_surname }} - {{ $data->staff_number }}
                                                 </option>
                                             @endforeach
                                         </select>
                                     </div>
 
-                                    @include('vacante.filterNombreDocenteCreate')
-
+                                    <div class="col-span-6">
+                                        <label for="numPersonalDocente" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Docente Sustituto</label>
+                                        <select  id="numPersonalDocente" name="numPersonalDocente" class="estiloSelect">
+                                            <option value="">Selecciona al docente</option>
+                                            @foreach ($docentes as $data)
+                                                <option value="{{$data->staff_number}}">
+                                                    {{$data->names}} {{$data->lastname}} {{$data->maternal_surname}}-{{$data->staff_number}}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
 
                                     <div class="col-span-6 sm:col-span-2 lg:col-span-2">
                                         <label for="fechaAviso" class="labelForms">Fecha de aviso</label>
@@ -275,8 +306,11 @@
 
                                     <div class="col-span-6">
                                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file">Documento</label>
-                                        <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file" type="file" accept=".pdf" name="files[]" multiple>
-                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">Formato permitido: PDF Tamaño maximo de archivos 2 MBs</p>
+                                        <input class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+                                            aria-describedby="file_input_help" id="file" type="file" accept=".pdf" name="file">
+                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">
+                                            Formato permitido: PDF | Tamaño máximo: 2MB
+                                        </p>
                                     </div>
 
                                 </div>
@@ -300,5 +334,8 @@
 
     </div>
 
+
 </body>
 </html>
+
+

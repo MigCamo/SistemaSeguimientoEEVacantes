@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\Vacante;
+use App\Models\Educational_Experience_Vacancies;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -37,7 +37,7 @@ class ProcessCSVUploadVacante implements ShouldQueue
 
         foreach ($data as $row){
 
-            Vacante::updateOrCreate(
+            Educational_Experience_Vacancies::updateOrCreate(
                 [
                     'periodo' => $row[0],
                     'clavePeriodo' => $row[1],
