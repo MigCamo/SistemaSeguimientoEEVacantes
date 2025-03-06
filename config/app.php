@@ -54,6 +54,7 @@ return [
     |
     */
 
+    //en caso de no funcionar la de abajo, usar la sig: 'url' => env('APP_URL', 'https://defaulturl.com'),
     'url' => env('APP_URL', 'http://localhost'),
 
     'asset_url' => env('ASSET_URL'),
