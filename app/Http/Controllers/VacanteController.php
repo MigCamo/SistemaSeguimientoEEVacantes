@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Curriculum_Educational_Experiences;
+use Illuminate\Support\Facades\Response;
 
 
 use Illuminate\Support\Facades\Log;
@@ -340,29 +341,30 @@ class VacanteController extends Controller
             $vacante->reason_code = $request->numMotivo;
             $vacante->academic = $request->academic;
 
-
-            // 2. Guardar el PDF en la base de datos si se subió
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-
+            
                 // Validar que el archivo sea un PDF
                 if ($file->getClientOriginalExtension() !== 'pdf') {
                     throw new \Exception("El archivo debe ser un PDF.");
                 }
-
+            
                 // Validar el tamaño del archivo (máximo 2MB)
                 if ($file->getSize() > 2 * 1024 * 1024) { // 2MB
                     throw new \Exception("El archivo no debe superar los 2MB.");
                 }
-
-                // Convertir el archivo a binario y guardarlo en el campo `content`
-                $vacante->content = file_get_contents($file->getRealPath());
+            
+                // Guardar el archivo en el almacenamiento de Laravel
+                $path = $file->store('pdfs', 'public'); // Guarda en storage/app/public/pdfs
+            
+                // Guardar la ruta en la base de datos
+                $vacante->content = $path;
             }
-
-
+            
             $vacante->save();
+                        
 
-            // 2. Crear la vacante asignada en Assigned_Vacancy
+            // 3. Crear la vacante asignada en Assigned_Vacancy
             $assignedVacancy = new AssignedVacancy();
             $assignedVacancy->ee_vacancy_code = $vacante->nrc; // Se usa el NRC generado
             $assignedVacancy->lecturer_code = $request->numPersonalDocente;
@@ -371,15 +373,14 @@ class VacanteController extends Controller
             $assignedVacancy->assignmentDate = !empty($request->fechaAsignacion) ? Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d') : null;
             $assignedVacancy->openingDate = !empty($request->fechaApertura) ? Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d') : null;
             $assignedVacancy->closingDate = !empty($request->fechaCierre) ? Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d') : null;
-
             $assignedVacancy->notes = $request->observaciones ?? '';
             $assignedVacancy->save();
 
             DB::commit(); // Confirma la transacción si todo sale bien
 
+            
             return redirect()->route('vacante.index')->with('success', 'Vacante creada correctamente');
         } catch (\Exception $e) {
-            dd("error", $e);
             DB::rollback();
             return redirect()->route('vacante.index')->with('error', 'Error al crear la vacante: ' . $e->getMessage());
         }
@@ -1025,6 +1026,30 @@ class VacanteController extends Controller
 
         return $vacantes;
 
+    }
+
+    public function downloadFile($id)
+    {
+        $vacante = Educational_Experience_Vacancies::findOrFail($id);
+
+        if (!$vacante->content) {
+            abort(404, 'Archivo no encontrado');
+        }
+
+        $filePath = 'public/' . $vacante->content; // Ruta relativa al archivo en storage/app
+
+        if (!Storage::exists($filePath)) {
+            abort(404, 'Archivo no encontrado en el almacenamiento.');
+        }
+
+        $fileContent = Storage::get($filePath); // Obtiene el contenido del archivo
+
+        $headers = [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="vacante_' . $vacante->id . '.pdf"',
+        ];
+
+        return Response::make($fileContent, 200, $headers); // Envía el contenido del archivo como respuesta
     }
 
     public function uploadCsvVacancies(Request $request)

@@ -81,6 +81,8 @@ Route::controller(VacanteController::class)->group(function (){
 
         Route::post('/vacante/deleteFile/{id}/{file}', 'deleteFile')->name('deleteFile');
 
+        Route::get('/vacante/download/{id}', 'downloadFile')->name('downloadFile');
+
     });
 
 });
