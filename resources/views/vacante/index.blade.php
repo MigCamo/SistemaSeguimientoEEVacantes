@@ -89,7 +89,15 @@
                         <td class="py-4 px-4">{{$vacante->hours}}</td>
                         <td class="py-4 px-4">{{$vacante->school_period_code}} - {{DB::table('school_Periods')->where('code',$vacante->school_period_code)->value('description')}}</td>
                         <td class="py-4 px-4">{{$vacante->academic}}</td>
-                        <td class="py-4 px-4">{{ $vacante->content ? 'Disponible' : 'Sin Archivo' }}</td>
+                        <td class="py-4 px-4">
+                            @if ($vacante->content)
+                            <a href="{{ route('vacante.downloadFile', ['id' => $vacante->nrc]) }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                Descargar
+                            </a>
+                            @else
+                                Sin Archivo
+                            @endif
+                        </td>
 
                         <td class="py-4 px-2 text-right whitespace-nowrap">
                             <button type="button" class="focus:outline-none text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-900" data-modal-toggle="view-modal{{$vacante->nrc}}">

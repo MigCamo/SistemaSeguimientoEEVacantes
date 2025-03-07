@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('numPlaza', 10)->nullable();
             $table->integer('reason_code');
             $table->string('academic');
-            $table->binary('content')->nullable();
+            $table->VARBINARY('content')->nullable();
             $table->timestamps();
 
             $table->foreign('school_period_code')->references('code')->on('school_periods')->onDelete('cascade')->onUpdate('cascade');
