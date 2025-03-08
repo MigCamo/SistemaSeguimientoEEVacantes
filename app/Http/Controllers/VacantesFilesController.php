@@ -22,7 +22,7 @@ class VacantesFilesController extends Controller
 
         if ($datos) {
             if ($this->guardarDatosEnBD($datos)) {
-                dd('Vacantes guardadas correctamente.');
+                return redirect()->route('vacante.index')->with('success', 'Vacantes cargadas correctamente');
             }
         } else {
             dd('No se pudieron extraer los datos.');
