@@ -30,6 +30,7 @@ class Educational_Experience_Vacancies extends Model
         'content',
         'reason_code',
         'academic',
+        'type_contract'
     ];
 
     // Relaciones con otros modelos

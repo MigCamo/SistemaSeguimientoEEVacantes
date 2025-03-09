@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('numPlaza', 10)->nullable();
             $table->integer('reason_code');
             $table->string('academic');
+            $table->string('type_contract');
             $table->VARBINARY('content')->nullable();
             $table->timestamps();
 

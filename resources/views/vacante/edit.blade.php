@@ -8,6 +8,15 @@
     <title>Actualizar EE Vacante</title>
     <!-- Fonts -->
     <link rel="stylesheet" href="https://fonts.bunny.net/css2?family=Nunito:wght@400;600;700&display=swap">
+
+    <!-- jQuery (Necesario para Select2) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @vite('node_modules/flowbite/dist/flowbite.js')
@@ -89,8 +98,7 @@
                 </div>
             </div>
             <div class="mt-5 md:col-span-2 md:mt-0 md:mr-5">
-
-                @if ($errors->any())
+            @if ($errors->any())
                     @foreach ($errors->all() as $error)
                         <div
                             class="flex p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800"
@@ -184,13 +192,11 @@
                                     <label for="tipoContratacion"
                                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Tipo
                                         de Contratación</label>
-                                    <select id="tipoContratacion" name="tipoContratacion" class="estiloSelect">
-                                        <option
-                                        value="{{ $vacanteAsignada->type_contract ?? '' }}">{{ $vacanteAsignada->type_contract ?? '' }}</option>
-                                        <option value="PLANTA">Planta</option>
-                                        <option value="IOD">Contratación IOD</option>
-                                        <option value="IPP">Contratación IPP</option>
-                                        <option value="IPPL">Contratación IPPL</option>
+                                    <select id="tipoContratacion" name="tipoContratacion" class="estiloSelect" required>
+                                        <option value="Planta" @selected($vacante->type_contract == "Planta")>Planta</option>
+                                        <option value="IOD" @selected($vacante->type_contract == "IOD")>Contratación IOD</option>
+                                        <option value="IPP" @selected($vacante->type_contract == "IPP")>Contratación IPP</option>
+                                        <option value="IPPL" @selected($vacante->type_contract == "IPPL")>Contratación IPPL</option>
                                     </select>
                                 </div>
 
