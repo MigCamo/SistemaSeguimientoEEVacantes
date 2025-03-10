@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Curriculum_Educational_Experiences;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
 
 
 use Illuminate\Support\Facades\Log;
@@ -406,15 +407,27 @@ class VacanteController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function storeDocente(StoreLecturerRequest $request){
-
+        
         $docente = new Lecturer();
-        $docente->nPersonal = $request->nPersonal;
-        $docente->nombre = $request->nombre;
-        $docente->apellidoPaterno = $request->apellidoPaterno;
-        $docente->apellidoMaterno = $request->apellidoMaterno;
+        
+        if (!$request->nPersonal) {
+            do {
+                $randomStaffNumber = rand(1000, 9999); // Genera un número aleatorio entre 1000 y 9999
+            } while (DB::table('lecturers')->where('staff_number', $randomStaffNumber)->exists());
+        
+            $docente->staff_number = $randomStaffNumber;
+        } else {
+            $docente->staff_number = $request->nPersonal;
+        }
+        
+        // Convertir nombres y apellidos a mayúsculas antes de guardar
+        $docente->names = strtoupper($request->nombre);
+        $docente->lastname = strtoupper($request->apellidoPaterno);
+        $docente->maternal_surname = strtoupper($request->apellidoMaterno);
         $docente->email = $request->email;
-
+        
         $docente->save();
+       
 
         $user = Auth::user();
         $data = $request->nPersonal ." ". $request->nombre ." ". $request->apellidoPaterno ." ". $request->apellidoMaterno ." ".$request->email;

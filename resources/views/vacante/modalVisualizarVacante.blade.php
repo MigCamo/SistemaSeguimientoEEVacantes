@@ -21,14 +21,14 @@
             <div><strong>Código de materia:</strong> {{$vacante->educational_experience_code}}</div>
             <div><strong>NRC:</strong> {{$vacante->nrc}}</div>
             <div><strong>Sub Grupo:</strong> {{$vacante->subGroup}}</div>
-            <div><strong>Motivo:</strong> {{$vacante->ev_reason_code}} - {{DB::table('reasons')->where('code','=',$vacante->ev_reason_code)->value('name')}}</div>
+            <div><strong>Motivo:</strong> {{$vacante->reason_code}} - {{DB::table('reasons')->where('code','=',$vacante->reason_code)->value('name')}}</div>
             <div><strong>Asignación:</strong> {{$vacante->type_asignation_code}}</div>
             <div><strong>Academico Dueño:</strong> {{$vacante->academic}}</div>
             <div>
                 <strong>Docente Suplente:</strong>
                 {{ DB::table('lecturers')->where('staff_number', $vacante->lecturer_code)->value(DB::raw("CONCAT(names, ' ', lastName, ' ', maternal_surname)")) }} - {{ $vacante->lecturer_code }}
             </div>
-            <div><strong>Tipo de contración:</strong> {{$vacante->ev_type_contract}}</div>
+            <div><strong>Tipo de contración:</strong> {{$vacante->type_contract}}</div>
             <div><strong>Fecha de aviso:</strong> {{$vacante->noticeDate}}</div>
             <div><strong>Fecha de asignación:</strong> {{$vacante->assignmentDate}}</div>
             <div><strong>Fecha de apertura:</strong> {{$vacante->openingDate}}</div>
