@@ -1,139 +1,90 @@
-<div class="col-span-6 sm:col-span-1 lg:col-span-1">
-    <label for="nombre-dropdown" class="block mb-0 text-sm  text-gray-900 dark:text-gray-400" >Inicial nombre</label>
-    <select id="nombre-dropdown" class="estiloSelect" name="filterNombre">
-        <option value="">Selecciona</option>
-        <option value="a-z">Todos</option>
-        <option value="a-c">A - B - C</option>
-        <option value="d-f">D - E - F</option>
-        <option value="g-i">G - H - I</option>
-        <option value="j-l">J - K - L</option>
-        <option value="m-ñ">M - N - Ñ</option>
-        <option value="o-q">O - P - Q</option>
-        <option value="r-t">R - S - T</option>
-        <option value="u-w">U - V - W</option>
-        <option value="x-z">X - Y - Z</option>
-    </select>
-</div>
-
-<div class="col-span-6 sm:col-span-1 lg:col-span-1">
-    <label for="apellido-dropdown" class="block mb-0 text-sm  text-gray-900 dark:text-gray-400" >Inicial apellido</label>
-    <select id="apellido-dropdown" class="estiloSelect" name="filterApellido">
-        <option value="a-z">Todos</option>
-        <option value="a-c">A - B - C</option>
-        <option value="d-f">D - E - F</option>
-        <option value="g-i">G - H - I</option>
-        <option value="j-l">J - K - L</option>
-        <option value="m-ñ">M - N - Ñ</option>
-        <option value="o-q">O - P - Q</option>
-        <option value="r-t">R - S - T</option>
-        <option value="u-w">U - V - W</option>
-        <option value="x-z">X - Y - Z</option>
-    </select>
-</div>
-
-<div class="col-span-6 sm:col-span-2 lg:col-span-2">
-    <label for="numPersonalDocente"
-           class="block mb-0 text-sm font-medium text-gray-900 dark:text-gray-400">Docente</label>
-    <select id="numPersonalDocente-dropdowm" name="numPersonalDocente" class="estiloSelect">
-        <option
-            value="{{ $docenteSeleccionado->staff_number ?? '' }}">{{ ($docenteSeleccionado->names ?? '') . ' ' . ($docenteSeleccionado->lastname ?? '') . ' ' . ($docenteSeleccionado->maternal_surname ?? '') }}
-            -{{$docenteSeleccionado->staff_number ?? '' }}</option>
+<div class="col-span-6">
+    <label for="academic" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">
+        Académico Titular
+    </label>
+    <input type="text" id="searchAcademic" placeholder="Escribe el nombre o apellido..."
+           class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+           value="{{$vacante->academic}}"
+           autocomplete="off">
+    <select id="academic" name="academic"
+            class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+        <option value="">Selecciona al académico</option>
         @foreach ($docentes as $data)
-            <option
-                value="{{$data->staff_number}}">
-                {{$data->names}} {{$data->lastname}} {{$data->maternal_surname}}
-                -{{$data->staff_number}}
+            <option value="{{ $data->names }} {{ $data->lastname }} {{ $data->maternal_surname }} - {{ $data->staff_number }}"
+                {{ ($vacante->academic == "$data->names $data->lastname $data->maternal_surname - $data->staff_number") ? 'selected' : '' }}>
+                {{ $data->names }} {{ $data->lastname }} {{ $data->maternal_surname }} - {{ $data->staff_number }}
             </option>
         @endforeach
     </select>
 </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script>
-    $(document).ready(function () {
+<div class="col-span-6">
+    <label for="numPersonalDocente" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">
+        Docente Sustituto
+    </label>
+    <input type="text" id="searchSubstitute" placeholder="Escribe el nombre o apellido..."
+           class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+           value="{{$docenteSeleccionado->names}} {{$docenteSeleccionado->lastname}} {{$docenteSeleccionado->maternal_surname}} - {{$docenteSeleccionado->staff_number}}"
+           autocomplete="off">
+           <select id="numPersonalDocente" name="numPersonalDocente"
+                    class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                <option value="">Selecciona al docente</option>
+                @foreach ($docentes as $data)
+                    <option value="{{ $data->staff_number }}" 
+                        {{ $docenteSeleccionado->staff_number == $data->staff_number ? 'selected' : '' }}>
+                        {{ $data->names }} {{ $data->lastname }} {{ $data->maternal_surname }} - {{ $data->staff_number }}
+                    </option>
+                @endforeach
+            </select>
 
-        $('#nombre-dropdown').on('change', function () {
-            var filtroNombreSeleccionado = this.value;
-            var filtroApellidoSeleccionado = document.getElementById("apellido-dropdown").value;
-            console.log(filtroApellidoSeleccionado);
-            $("#numPersonalDocente-dropdowm").html('');
-            $.ajax({
-                url: "{{url('api/fetch-filtroNombre')}}",
-                type: "POST",
-                data: {
-                    rangoLetrasNombre: filtroNombreSeleccionado,
-                    rangoLetrasApellido: filtroApellidoSeleccionado,
-                    _token: '{{csrf_token()}}'
-                },
-                dataType: 'json',
-                success: function (result) {
-                    $.each(result.filtroNombre, function (key, value) {
-                        if(value.nPersonal == null && value.apellidoMaterno == null){
-                            value.nPersonal = " ";
-                            value.apellidoMaterno = " ";
-                            $("#numPersonalDocente-dropdowm").append('<option value="' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '">' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '</option>');
-                        }
-                        else if(value.nPersonal == null){
-                            value.nPersonal = " ";
-                            $("#numPersonalDocente-dropdowm").append('<option value="' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '">' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '</option>');
-                        }
-                        else if(value.apellidoMaterno == null){
-                            value.apellidoMaterno = " ";
-                            $("#numPersonalDocente-dropdowm").append('<option value="' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '">' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '</option>');
-                        }
-                        else{
-                            $("#numPersonalDocente-dropdowm").append('<option value="' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '">' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '</option>');
-                        }
-                    });
-                }
-            });
-        });
-
-    });
-
-</script>
+</div>
 
 <script>
-    $(document).ready(function () {
+    $(document).ready(function() {
+        function setupSearch(inputId, selectId) {
+            let originalOptions = $("#" + selectId + " option").clone();
 
-        $('#apellido-dropdown').on('change', function () {
-            var filtroApellidoSeleccionado = this.value;
-            var filtroNombreSeleccionado = document.getElementById("nombre-dropdown").value;
-            $("#numPersonalDocente-dropdowm").html('');
-            $.ajax({
-                url: "{{url('api/fetch-filtroNombre')}}",
-                type: "POST",
-                data: {
-                    rangoLetrasNombre: filtroNombreSeleccionado,
-                    rangoLetrasApellido: filtroApellidoSeleccionado,
-                    _token: '{{csrf_token()}}'
-                },
-                dataType: 'json',
-                success: function (result) {
-                    $.each(result.filtroNombre, function (key, value) {
-                        if(value.nPersonal == null && value.apellidoMaterno == null){
-                            value.nPersonal = " ";
-                            value.apellidoMaterno = " ";
-                            $("#numPersonalDocente-dropdowm").append('<option value="' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '">' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '</option>');
-                        }
-                        else if(value.nPersonal == null){
-                            value.nPersonal = " ";
-                            $("#numPersonalDocente-dropdowm").append('<option value="' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '">' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '</option>');
-                        }
-                        else if(value.apellidoMaterno == null){
-                            value.apellidoMaterno = " ";
-                            $("#numPersonalDocente-dropdowm").append('<option value="' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '">' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '</option>');
-                        }
-                        else{
-                            $("#numPersonalDocente-dropdowm").append('<option value="' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '">' + value.nombre +" "+ value.apellidoPaterno + " " + value.apellidoMaterno + "-" + value.nPersonal + '</option>');
-                        }
-                    });
+            $("#" + inputId).on("input", function() {
+                let searchTerm = $(this).val().toLowerCase();
+
+                if (searchTerm.length === 0) {
+                    $("#" + selectId).html(originalOptions); // Restaurar opciones si no hay búsqueda
+                    return;
+                }
+
+                $("#" + selectId).html(originalOptions.filter(function() {
+                    let text = $(this).text().toLowerCase();
+                    return text.includes(searchTerm); // Filtrar opciones según la búsqueda
+                }));
+            });
+
+            $("#" + selectId).on("change", function() {
+                let selectedOption = $(this).find("option:selected").text().trim();
+                if (selectedOption !== "Selecciona al docente" && selectedOption !== "Selecciona al académico") {
+                    $("#" + inputId).val(selectedOption);
+                } else {
+                    $("#" + inputId).val("");
                 }
             });
-        });
+
+            // Asegurar que el input muestre el valor seleccionado por defecto y actualizar el select
+            let selectedOptionText = $("#" + selectId + " option:selected").text().trim();
+            let selectedOptionValue = $("#" + selectId + " option:selected").val();
+            let currentValue = $("#" + inputId).val().trim();
+
+            if (currentValue === "" && selectedOptionText !== "") {
+                $("#" + inputId).val(selectedOptionText);
+            }
+
+            // Asegurar que el select tenga seleccionada la opción correcta basada en el valor del input
+            $("#" + selectId).val(selectedOptionValue);
+        }
+
+        // Configurar para Académico Titular
+        setupSearch("searchAcademic", "academic");
+
+        // Configurar para Docente Sustituto
+        setupSearch("searchSubstitute", "numPersonalDocente");
 
     });
-
 </script>
-
-

@@ -69,18 +69,25 @@ class VacanteController extends Controller
                 $busqueda = "";
                 $isDeleted = false;
                 $vacantes = DB::table('educational_experience_vacancies as ev')
-                    // Join para obtener la información del período escolar actual
                     ->join('school_periods as sp', function($join) {
                         $join->on('ev.school_period_code', '=', 'sp.code')
                             ->where('sp.current', '=', 1);
                     })
-                    // Join para obtener la información de la experiencia educativa asociada
                     ->join('educational_experiences as ee', 'ev.educational_experience_code', '=', 'ee.code')
                     ->leftJoin('assigned_vacancies as av', 'ev.nrc', '=', 'av.ee_vacancy_code')
-                    // Seleccionar columnas de ambas tablas, puedes ajustar los campos según tus necesidades
-                    ->select('ev.*', 'ee.*', 'sp.code as period_code', 'sp.current', 'av.reason_code', 'av.type_asignation_code', 'av.lecturer_code', 'av.*')
+                    ->select(
+                        'ev.*',
+                        'ee.*',
+                        'ev.type_contract as ev_type_contract',  // Alias para evitar confusión
+                        'ev.reason_code as ev_reason_code',      // Alias para evitar confusión
+                        'sp.code as period_code',
+                        'sp.current',
+                        'av.reason_code as av_reason_code',      // Alias para identificar de dónde viene
+                        'av.type_asignation_code',
+                        'av.lecturer_code',
+                        'av.*'
+                    )
                     ->paginate(15);
-
         }else{
 
             $vac = DB::table('educational_experience_vacancies')
@@ -340,29 +347,30 @@ class VacanteController extends Controller
             $vacante->numPlaza = $request->numPlaza;
             $vacante->reason_code = $request->numMotivo;
             $vacante->academic = $request->academic;
+            $vacante->type_contract = $request->tipoContratacion;
 
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-            
+
                 // Validar que el archivo sea un PDF
                 if ($file->getClientOriginalExtension() !== 'pdf') {
                     throw new \Exception("El archivo debe ser un PDF.");
                 }
-            
+
                 // Validar el tamaño del archivo (máximo 2MB)
                 if ($file->getSize() > 2 * 1024 * 1024) { // 2MB
                     throw new \Exception("El archivo no debe superar los 2MB.");
                 }
-            
+
                 // Guardar el archivo en el almacenamiento de Laravel
                 $path = $file->store('pdfs', 'public'); // Guarda en storage/app/public/pdfs
-            
+
                 // Guardar la ruta en la base de datos
                 $vacante->content = $path;
             }
-            
+
             $vacante->save();
-                        
+
 
             // 3. Crear la vacante asignada en Assigned_Vacancy
             $assignedVacancy = new AssignedVacancy();
@@ -378,7 +386,7 @@ class VacanteController extends Controller
 
             DB::commit(); // Confirma la transacción si todo sale bien
 
-            
+
             return redirect()->route('vacante.index')->with('success', 'Vacante creada correctamente');
         } catch (\Exception $e) {
             DB::rollback();
@@ -477,12 +485,11 @@ class VacanteController extends Controller
 
         $listaDocentes = DB::table('lecturers');
 
-        if ($docenteSeleccionado) {
-            $listaDocentes = $listaDocentes->where('staff_number', '!=', $docenteSeleccionado->staff_number);
-        }
-
         $listaDocentes = $listaDocentes->get();
-        $motivoSeleccionado = DB::table('reasons')->join('assigned_vacancies', 'assigned_vacancies.reason_code', '=', 'reasons.code')->where('assigned_vacancies.ee_vacancy_code', $vacante->nrc)->first();
+        $motivoSeleccionado = DB::table('reasons as r')
+            ->join('educational_experience_vacancies as eev', 'eev.reason_code', '=', 'r.code')
+            ->where('eev.nrc', $vacante->nrc)
+            ->first();
         $listaMotivos = DB::table('reasons');
 
         if (!is_null($motivoSeleccionado)) {
@@ -544,6 +551,7 @@ class VacanteController extends Controller
                 ['user' => $user,
                     'motivos' => $listaMotivos,
                     'motivoSeleccionado' => $motivoSeleccionado,
+                    'asignacion' => $asignacion,
                     'docentes' => $listaDocentes,
                     'docenteSeleccionado' => $docenteSeleccionado,
                     'experienciasEducativas' => $listaExperienciasEducativas,
@@ -601,11 +609,33 @@ class VacanteController extends Controller
      */
     public function update(Request $request, $id)
     {
-
         DB::beginTransaction();
 
-        try{
+        try {
             $vacante = Educational_Experience_Vacancies::findOrFail($id);
+
+            $docenteActual = DB::table('assigned_vacancies')
+                ->where('ee_vacancy_code', $vacante->nrc)
+                ->first();
+
+            if ($docenteActual && $docenteActual->lecturer_code != $request->numPersonalDocente) {
+                $docenteAnterior = DB::table('lecturers')
+                    ->where('staff_number', $docenteActual->lecturer_code)
+                    ->first();
+
+                DB::table('historico_docentes')->insert([
+                    'vacanteID' => $vacante->nrc,
+                    'nPersonal' => $docenteActual->lecturer_code,
+                    'nombreDocente' => $docenteAnterior ? ($docenteAnterior->names . ' ' . $docenteAnterior->lastname . ' ' . $docenteAnterior->maternal_surname) : 'Desconocido',
+                    'tipoAsignacion' => $docenteActual->type_asignation_code,
+                    'fechaAviso' => $docenteActual->noticeDate,
+                    'fechaAsignacion' => $docenteActual->assignmentDate,
+                    'fechaRenuncia' => now()->format('Y-m-d'),
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
+
             $vacante->school_period_code = $request->periodo;
             $vacante->region_code = $request->numZona;
             $vacante->departament_code = $request->numDependencia;
@@ -616,48 +646,71 @@ class VacanteController extends Controller
             $vacante->class = $request->grupo;
             $vacante->subGroup = $request->subGrupo;
             $vacante->numPlaza = $request->numPlaza;
+            $vacante->reason_code = $request->numMotivo;
+            $vacante->academic = $request->academic;
+            $vacante->type_contract = $request->tipoContratacion;
+            
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+            
+                // Validar que el archivo sea un PDF
+                if ($file->getClientOriginalExtension() !== 'pdf') {
+                    throw new \Exception("El archivo debe ser un PDF.");
+                }
+            
+                // Validar el tamaño del archivo (máximo 2MB)
+                if ($file->getSize() > 2 * 1024 * 1024) { // 2MB
+                    throw new \Exception("El archivo no debe superar los 2MB.");
+                }
+            
+                // Eliminar el archivo anterior si existe
+                if (!empty($vacante->content)) {
+                    $oldFilePath = storage_path("app/public/{$vacante->content}");
+                    if (file_exists($oldFilePath)) {
+                        unlink($oldFilePath);
+                    }
+                }
+            
+                // Definir el nombre del archivo con timestamp para evitar duplicados
+                $fileName = time() . '_' . $file->getClientOriginalName();
+            
+                // Guardar el archivo con un nombre predecible
+                $file->storeAs('public/pdfs', $fileName);
+            
+                // Actualizar la base de datos directamente
+                $vacante->update(['content' => 'pdfs/' . $fileName]);
+            }
+            
+            
             $vacante->save();
+            
 
             DB::table('assigned_vacancies')
-            ->where('ee_vacancy_code', $vacante->nrc)
-            ->update([
-                'ee_vacancy_code' => $vacante->nrc, // Se usa el NRC generado
-                'lecturer_code' => $request->numPersonalDocente,
-                'reason_code' => $request->numMotivo,
-                'type_asignation_code' => $request->tipoAsignacion,
-                'noticeDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d'),
-                'assignmentDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d'),
-                'openingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d'),
-                'closingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d'),
-                'notes' => $request->observaciones ?? '',
-            ]);
-
-            DB::table('historico_docentes')->insert([
-                'vacanteID' => $vacante->nrc,
-                'nPersonal' => $request->numPersonalDocente,
-                'nombreDocente' => $request->nombre . ' ' . $request->apellidoPaterno . ' ' . $request->apellidoMaterno,
-                'tipoAsignacion' => $request->tipoAsignacion,
-                'fechaAviso' => $request->fechaAviso ? Carbon::createFromFormat('d/m/Y', trim($request->fechaAviso))->format('Y-m-d') : null,
-                'fechaAsignacion' => $request->fechaAsignacion ? Carbon::createFromFormat('d/m/Y', trim($request->fechaAsignacion))->format('Y-m-d') : null,
-                'fechaRenuncia' => $request->fechaRenuncia ? Carbon::createFromFormat('d/m/Y', $request->fechaRenuncia)->format('Y-m-d') : null,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+                ->where('ee_vacancy_code', $vacante->nrc)
+                ->update([
+                    'ee_vacancy_code' => $vacante->nrc,
+                    'lecturer_code' => $request->numPersonalDocente,
+                    'type_asignation_code' => $request->tipoAsignacion,
+                    'noticeDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d'),
+                    'assignmentDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d'),
+                    'openingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d'),
+                    'closingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d'),
+                    'notes' => $request->observaciones ?? '',
+                ]);
 
             DB::commit();
 
             $user = Auth::user();
             $data = $request->nPersonal ." ". $request->nombre ." ". $request->apellidoPaterno ." ". $request->apellidoMaterno ." ".$request->email;
-            event(new LogUserActivity($user,"Actualización de Vacante ID $id ",$data));
+            event(new LogUserActivity($user, "Actualización de Vacante ID $id", $data));
 
             return redirect()->route('vacante.index')->with('success', 'Vacante editada correctamente');
-
         } catch (\Exception $e) {
-            dd("error", $e);
             DB::rollback();
-            return redirect()->route('vacante.index')->with('error', 'Error al crear la vacante: ' . $e->getMessage());
+            return redirect()->route('vacante.index')->with('error', 'Error al actualizar la vacante: ' . $e->getMessage());
         }
     }
+
 
     /**
      * Función para actualizar las vacantes para el rol de facultad
