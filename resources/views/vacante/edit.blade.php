@@ -369,15 +369,32 @@
                                 </div>
 
                                 <div class="col-span-6">
-                                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                                           for="file">Documento(s) actual(es)</label>
+                                    <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file">
+                                        Documento(s) actual(es)
+                                    </label>
+
+                                    {{-- Mostrar el nombre del archivo si existe --}}
+                                    @if (!empty($vacante->content))
+                                        <p class="mb-2 text-sm text-green-600 dark:text-green-400">
+                                            Archivo actual: <strong>{{ basename($vacante->content) }}</strong>
+                                        </p>
+                                    @else
+                                        <p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                                            No hay archivo adjunto.
+                                        </p>
+                                    @endif
+
+                                    {{-- Input para subir un nuevo archivo --}}
                                     <input
                                         class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
                                         aria-describedby="file_input_help" id="file" type="file" accept=".pdf"
-                                        name="files[]" multiple>
+                                        name="file" multiple>
+
                                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">
-                                        Formato permitido: PDF Tamaño maximo de archivos 2 MBs</p>
+                                        Formato permitido: PDF. Tamaño máximo: 2 MB.
+                                    </p>
                                 </div>
+
 
                             </div>
                         </div>

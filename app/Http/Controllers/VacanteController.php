@@ -649,8 +649,41 @@ class VacanteController extends Controller
             $vacante->reason_code = $request->numMotivo;
             $vacante->academic = $request->academic;
             $vacante->type_contract = $request->tipoContratacion;
-
+            
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+            
+                // Validar que el archivo sea un PDF
+                if ($file->getClientOriginalExtension() !== 'pdf') {
+                    throw new \Exception("El archivo debe ser un PDF.");
+                }
+            
+                // Validar el tamaño del archivo (máximo 2MB)
+                if ($file->getSize() > 2 * 1024 * 1024) { // 2MB
+                    throw new \Exception("El archivo no debe superar los 2MB.");
+                }
+            
+                // Eliminar el archivo anterior si existe
+                if (!empty($vacante->content)) {
+                    $oldFilePath = storage_path("app/public/{$vacante->content}");
+                    if (file_exists($oldFilePath)) {
+                        unlink($oldFilePath);
+                    }
+                }
+            
+                // Definir el nombre del archivo con timestamp para evitar duplicados
+                $fileName = time() . '_' . $file->getClientOriginalName();
+            
+                // Guardar el archivo con un nombre predecible
+                $file->storeAs('public/pdfs', $fileName);
+            
+                // Actualizar la base de datos directamente
+                $vacante->update(['content' => 'pdfs/' . $fileName]);
+            }
+            
+            
             $vacante->save();
+            
 
             DB::table('assigned_vacancies')
                 ->where('ee_vacancy_code', $vacante->nrc)

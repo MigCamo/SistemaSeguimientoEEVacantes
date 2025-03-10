@@ -26,15 +26,17 @@
            class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600"
            value="{{$docenteSeleccionado->names}} {{$docenteSeleccionado->lastname}} {{$docenteSeleccionado->maternal_surname}} - {{$docenteSeleccionado->staff_number}}"
            autocomplete="off">
-    <select id="numPersonalDocente" name="numPersonalDocente"
-            class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
-        <option value="">Selecciona al docente</option>
-        @foreach ($docentes as $data)
-            <option value="{{ $data->staff_number }}">
-                {{ $data->names }} {{ $data->lastname }} {{ $data->maternal_surname }} - {{ $data->staff_number }}
-            </option>
-        @endforeach
-    </select>
+           <select id="numPersonalDocente" name="numPersonalDocente"
+                    class="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:border-gray-600">
+                <option value="">Selecciona al docente</option>
+                @foreach ($docentes as $data)
+                    <option value="{{ $data->staff_number }}" 
+                        {{ $docenteSeleccionado->staff_number == $data->staff_number ? 'selected' : '' }}>
+                        {{ $data->names }} {{ $data->lastname }} {{ $data->maternal_surname }} - {{ $data->staff_number }}
+                    </option>
+                @endforeach
+            </select>
+
 </div>
 
 <script>
