@@ -352,26 +352,33 @@ class VacanteController extends Controller
 
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-
-                // Validar que el archivo sea un PDF
-                if ($file->getClientOriginalExtension() !== 'pdf') {
-                    throw new \Exception("El archivo debe ser un PDF.");
+                $extension = $file->getClientOriginalExtension();
+            
+                // Validar que el archivo sea un PDF o Word
+                if (!in_array($extension, ['pdf', 'doc', 'docx'])) {
+                    throw new \Exception("El archivo debe ser un PDF o un documento de Word (.doc, .docx).");
                 }
-
+            
                 // Validar el tamaño del archivo (máximo 2MB)
                 if ($file->getSize() > 2 * 1024 * 1024) { // 2MB
                     throw new \Exception("El archivo no debe superar los 2MB.");
                 }
-
-                // Guardar el archivo en el almacenamiento de Laravel
-                $path = $file->store('pdfs', 'public'); // Guarda en storage/app/public/pdfs
-
-                // Guardar la ruta en la base de datos
-                $vacante->content = $path;
+            
+                // Definir la carpeta de almacenamiento según el tipo de archivo
+                $folder = ($extension === 'pdf') ? 'pdfs' : 'words';
+            
+                // Definir el nombre del archivo con timestamp para evitar duplicados
+                $fileName = time() . '_' . $file->getClientOriginalName();
+            
+                // Guardar el archivo en la carpeta correspondiente
+                $path = $file->storeAs("public/{$folder}", $fileName); // Guarda en storage/app/public/{pdfs|words}
+            
+                // Guardar la ruta en la base de datos (sin "public/")
+                $vacante->content = "{$folder}/{$fileName}";
             }
-
+            
             $vacante->save();
-
+        
 
             // 3. Crear la vacante asignada en Assigned_Vacancy
             $assignedVacancy = new AssignedVacancy();
@@ -666,9 +673,12 @@ class VacanteController extends Controller
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
             
-                // Validar que el archivo sea un PDF
-                if ($file->getClientOriginalExtension() !== 'pdf') {
-                    throw new \Exception("El archivo debe ser un PDF.");
+                // Validar que el archivo sea PDF o Word
+                $allowedExtensions = ['pdf', 'doc', 'docx'];
+                $extension = $file->getClientOriginalExtension();
+            
+                if (!in_array($extension, $allowedExtensions)) {
+                    throw new \Exception("El archivo debe ser un PDF o un documento Word (DOC/DOCX).");
                 }
             
                 // Validar el tamaño del archivo (máximo 2MB)
@@ -684,18 +694,22 @@ class VacanteController extends Controller
                     }
                 }
             
+                // Definir carpeta según la extensión
+                $folder = ($extension === 'pdf') ? 'pdfs' : 'words';
+            
                 // Definir el nombre del archivo con timestamp para evitar duplicados
                 $fileName = time() . '_' . $file->getClientOriginalName();
             
-                // Guardar el archivo con un nombre predecible
-                $file->storeAs('public/pdfs', $fileName);
+                // Guardar el archivo en la carpeta correcta
+                $file->storeAs("public/{$folder}", $fileName);
             
-                // Actualizar la base de datos directamente
-                $vacante->update(['content' => 'pdfs/' . $fileName]);
+                // Guardar la ruta en la base de datos (sin "public/")
+                $vacante->content = "{$folder}/{$fileName}";
             }
             
-            
             $vacante->save();
+            
+            
             
 
             DB::table('assigned_vacancies')
@@ -1099,24 +1113,30 @@ class VacanteController extends Controller
         $vacante = Educational_Experience_Vacancies::findOrFail($id);
 
         if (!$vacante->content) {
-            abort(404, 'Archivo no encontrado');
+            return redirect()->back()->with('error', 'No hay archivo disponible para esta vacante.');
         }
 
-        $filePath = 'public/' . $vacante->content; // Ruta relativa al archivo en storage/app
+        $filePath = storage_path("app/public/{$vacante->content}");
 
-        if (!Storage::exists($filePath)) {
-            abort(404, 'Archivo no encontrado en el almacenamiento.');
+        if (!file_exists($filePath)) {
+            return redirect()->back()->with('error', 'El archivo no existe.');
         }
 
-        $fileContent = Storage::get($filePath); // Obtiene el contenido del archivo
-
-        $headers = [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="vacante_' . $vacante->id . '.pdf"',
+        // Obtener la extensión del archivo
+        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+        
+        // Definir el tipo MIME adecuado según la extensión
+        $mimeTypes = [
+            'pdf'  => 'application/pdf',
+            'doc'  => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         ];
 
-        return Response::make($fileContent, 200, $headers); // Envía el contenido del archivo como respuesta
+        $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
+
+        return response()->download($filePath, basename($filePath), ['Content-Type' => $mimeType]);
     }
+
 
     public function uploadCsvVacancies(Request $request)
     {
