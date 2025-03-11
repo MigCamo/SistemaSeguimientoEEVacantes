@@ -91,7 +91,7 @@
                         @csrf
                         <label>Máximo 20 MB por archivo</label>
                         <input type="file" name="csv_file" required>
-                        <input type="hidden" name="curriculum_code" value="{{ $curriculum->code }}">
+                        <input type="hidden" name="curriculum_code" value="{{ $curriculum->code ?? Null}}">
                         <button type="submit" class="btn btn-primary">Cargar CSV</button>
                     </form>
 
@@ -126,8 +126,8 @@
         </div>
     </div>
 
-    <form action="{{route('curriculumDetails.index')}}" method="GET">
-        <input type="hidden" name="curriculum_code" value="{{$curriculum->code}}">
+    <form action="{{route('curriculumDetails.search')}}" method="GET">
+        <input type="hidden" name="curriculum_code" value="{{$curriculum->code ?? Null}}">
 
         <div class="flex shadow-md sm:rounded-lg md:mt-5 md:mx-10 md:my-10">
 
@@ -148,7 +148,7 @@
                     <li>
                         <div class="flex items-center">
                             <input id="name" type="radio" value="name" name="tipo" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
-                            <label for="name" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Año</label>
+                            <label for="name" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Nombre</label>
                         </div>
                     </li>
                 </ul>

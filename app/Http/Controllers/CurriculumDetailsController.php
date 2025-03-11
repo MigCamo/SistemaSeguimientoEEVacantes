@@ -13,6 +13,42 @@ use Illuminate\Support\Facades\DB;
 
 class CurriculumDetailsController extends Controller
 {
+
+    public function search(Request $request)
+    {
+        $curriculumCode = $request->input('curriculum_code');
+        $tipo = $request->input('tipo'); // Puede ser 'code' o 'name'
+        $search = $request->input('search');
+
+        // Obtener el currículum
+        $curriculum = DB::table('curriculums')->where('code', $curriculumCode)->first();
+
+        // Construir la consulta base
+        $query = DB::table('educational_experiences')
+            ->join('curriculum_educational_experiences', 'educational_experiences.code', '=', 'curriculum_educational_experiences.ee_code')
+            ->where('curriculum_educational_experiences.curriculum_code', $curriculumCode);
+
+        // Aplicar filtro de búsqueda si hay texto
+        if ($search) {
+            if ($tipo === 'code') {
+                $query->where('educational_experiences.code', 'LIKE', "%{$search}%");
+            } elseif ($tipo === 'name') {
+                $query->where('educational_experiences.name', 'LIKE', "%{$search}%");
+            }
+        }
+
+        // Obtener los datos paginados
+        $educationExperiencesList = $query
+            ->select('educational_experiences.code', 'educational_experiences.name', 'educational_experiences.hours')
+            ->paginate(10)
+            ->withQueryString();
+
+        // Enviar a la vista
+        return view('curriculumDetails.index', compact('educationExperiencesList', 'curriculum'));
+    }
+
+
+
     public function index(Request $request)
     {
         $curriculumCode = $request->get('curriculumCode');
@@ -73,40 +109,56 @@ class CurriculumDetailsController extends Controller
 
         try {
             if ($file = $request->file('csv_file')) {
-                $csvData = file_get_contents($file);
-                $rows = array_map('str_getcsv', explode("\n", $csvData));
-                $header = array_shift($rows);
+                // Abrir el archivo usando fopen
+                if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+                    // Obtener el encabezado
+                    if (($header = fgetcsv($handle, 1000, ',')) !== false) {
+                        while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+                            // Verificar que la fila no esté vacía y tenga el número correcto de columnas
+                            if (empty(array_filter($data)) || count($data) != count($header)) {
+                                continue;
+                            }
 
-                foreach ($rows as $row) {
-                    if (count($row) == count($header)) {
-                        $data = array_combine($header, $row);
-                        $curriculum_code = $request->curriculum_code;
-                        $ee_code = $data['MATCUR'] ?? null;
+                            $row = array_combine($header, $data);
+                            $curriculum_code = $request->curriculum_code;
+                            $ee_code = $row['MATCUR'] ?? null;
 
-                        $educationalExperience = EducationalExperience::firstOrCreate(
-                            ['code' => $ee_code],
-                            ['name' => $data['TEXG'] ?? null,
-                            'hours' => $data['HRS'] ?? null]
-                        );
+                            // Crear o buscar la experiencia educativa
+                            $educationalExperience = EducationalExperience::firstOrCreate(
+                                ['code' => $ee_code],
+                                [
+                                    'name'  => $row['TEXG'] ?? null,
+                                    'hours' => $row['HRS'] ?? null,
+                                ]
+                            );
 
-                        $relationExists = Curriculum_Educational_Experiences::where('curriculum_code', $curriculum_code)
-                            ->where('ee_code', $ee_code)
-                            ->exists();
+                            // Verificar si la relación ya existe
+                            $relationExists = Curriculum_Educational_Experiences::where('curriculum_code', $curriculum_code)
+                                ->where('ee_code', $ee_code)
+                                ->exists();
 
-                        if (!$relationExists) {
-                            $request->merge([
-                                'curriculum_code' => $curriculum_code,
-                                'ee_code' => $ee_code
-                            ]);
+                            if (!$relationExists) {
+                                // Se recomienda pasar directamente los datos necesarios a la función store,
+                                // en lugar de modificar el objeto Request original
+                                $dataRelation = [
+                                    'curriculum_code' => $curriculum_code,
+                                    'ee_code'         => $ee_code,
+                                ];
 
-                            $this->store($request);
+                                // Asegúrate de que el método store acepte este arreglo o ajusta la lógica.
+                                $this->store(new Request($dataRelation));
+                            }
                         }
                     }
+                    fclose($handle);
                 }
                 return redirect()->back()->with('status', 'success');
             }
         } catch (\Exception $e) {
-            return redirect()->back()->with('status', 'error')->with('error_message', $e->getMessage());
+            return redirect()->back()
+                ->with('status', 'error')
+                ->with('error_message', $e->getMessage());
         }
     }
+
 }

@@ -407,27 +407,27 @@ class VacanteController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function storeDocente(StoreLecturerRequest $request){
-        
+
         $docente = new Lecturer();
-        
+
         if (!$request->nPersonal) {
             do {
                 $randomStaffNumber = rand(1000, 9999); // Genera un número aleatorio entre 1000 y 9999
             } while (DB::table('lecturers')->where('staff_number', $randomStaffNumber)->exists());
-        
+
             $docente->staff_number = $randomStaffNumber;
         } else {
             $docente->staff_number = $request->nPersonal;
         }
-        
+
         // Convertir nombres y apellidos a mayúsculas antes de guardar
         $docente->names = strtoupper($request->nombre);
         $docente->lastname = strtoupper($request->apellidoPaterno);
         $docente->maternal_surname = strtoupper($request->apellidoMaterno);
         $docente->email = $request->email;
-        
+
         $docente->save();
-       
+
 
         $user = Auth::user();
         $data = $request->nPersonal ." ". $request->nombre ." ". $request->apellidoPaterno ." ". $request->apellidoMaterno ." ".$request->email;
@@ -1134,9 +1134,10 @@ class VacanteController extends Controller
 
             $rows = array_map('str_getcsv', explode("\n", $csvData));
 
-            $header = null;
-            $currentAcademic = null;
-            $filteredRows = [];
+            $header         = null;
+            $currentAcademic= null;
+            $currentPlaza   = null;  // <--- Variable para guardar la plaza actual
+            $filteredRows   = [];
 
             foreach ($rows as $row) {
                 $row = array_map('trim', $row);
@@ -1162,6 +1163,16 @@ class VacanteController extends Controller
                     continue;
                 }
 
+                // Detectar si la fila contiene "Plaza: ..."
+                if (isset($row[0]) && str_contains($row[0], 'Plaza:')) {
+                    // Extraemos el número de plaza con una expresión regular
+                    preg_match('/Plaza:\s*(\d+)/', $row[0], $matches);
+                    $currentPlaza = $matches[1] ?? null;
+
+                    // Si quieres, también puedes parsear aquí "Categoría:", "Puesto:", etc.
+                    continue;
+                }
+
                 // Detectar el encabezado
                 if (count(array_filter($row)) > 3 && is_null($header)) {
                     $header = $row;
@@ -1171,7 +1182,10 @@ class VacanteController extends Controller
                 // Si ya tenemos encabezado y la fila coincide en columnas, la guardamos
                 if ($header && count($row) == count($header)) {
                     $data = array_combine($header, $row);
+
+                    // Añadimos a la fila el nombre del académico y la plaza actual
                     $data['academic'] = $currentAcademic;
+                    $data['Plaza']    = $currentPlaza;
 
                     // Filtrar solo las vacantes válidas
                     if (
@@ -1191,7 +1205,6 @@ class VacanteController extends Controller
 
             Log::info('Archivo CSV procesado correctamente.');
 
-            // Obtener el periodo escolar activo
             $activePeriod = SchoolPeriod::where('current', 1)->first();
             if (!$activePeriod) {
                 Log::error('No se encontró un periodo escolar activo.');
@@ -1203,7 +1216,23 @@ class VacanteController extends Controller
                 $nrc           = $data['NRC'] ?? null;
                 $programCode   = $data['Clave Programática'] ?? null;
                 $experienceName= $data['Experiencia Educativa'] ?? null;
-                $numPlaza      = isset($data['Plaza']) ? trim($data['Plaza']) : null;
+
+                if (isset($data['Plaza'])) {
+                    Log::info("Valor original de Plaza: " . json_encode($data['Plaza']));
+
+                    // Eliminamos caracteres no numéricos
+                    $numPlaza = preg_replace('/\D/', '', $data['Plaza']);
+
+                    if (empty($numPlaza)) {
+                        Log::warning("No se pudo extraer un número válido de Plaza: " . json_encode($data['Plaza']));
+                    } else {
+                        Log::info("Número extraído de Plaza: $numPlaza");
+                    }
+                } else {
+                    $numPlaza = null;
+                    Log::warning("La columna 'Plaza' no existe en la fila: " . json_encode($data));
+                }
+
 
                 $reasonCode    = $data['Motivo RH'] ?? null;
                 $academic      = $data['academic']   ?? null;
@@ -1267,4 +1296,5 @@ class VacanteController extends Controller
                 ->with('error_message', $e->getMessage());
         }
     }
+
 }
