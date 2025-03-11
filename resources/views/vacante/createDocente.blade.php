@@ -12,7 +12,7 @@
                     @csrf
                     <div>
                         <label for="nPersonal" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Número de personal</label>
-                        <input type="number" name="nPersonal" id="nPersonal" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Ej. 1531" required>
+                        <input type="number" name="nPersonal" id="nPersonal" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Ej. 1531">
                     </div>
                     <div>
                         <label for="nombre" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nombre del docente</label>

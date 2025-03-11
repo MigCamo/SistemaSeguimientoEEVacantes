@@ -26,9 +26,8 @@ class StoreLecturerRequest extends FormRequest
     public function rules()
     {
         return [
-            'staff_number'=> 'nullable|numeric|min:1',
-            'names'=> 'required|string|min:1',
-            'lastname'=> 'required|string|min:1',
+            'names'=> 'nullable|string|min:1',
+            'lastname'=> 'nullable|string|min:1',
             'maternal_surname'=> 'nullable|string|min:1',
             'email'=> 'nullable|email',
         ];
