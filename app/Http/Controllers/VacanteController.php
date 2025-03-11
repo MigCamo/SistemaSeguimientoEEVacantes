@@ -649,20 +649,20 @@ class VacanteController extends Controller
             $vacante->reason_code = $request->numMotivo;
             $vacante->academic = $request->academic;
             $vacante->type_contract = $request->tipoContratacion;
-            
+
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-            
+
                 // Validar que el archivo sea un PDF
                 if ($file->getClientOriginalExtension() !== 'pdf') {
                     throw new \Exception("El archivo debe ser un PDF.");
                 }
-            
+
                 // Validar el tamaño del archivo (máximo 2MB)
                 if ($file->getSize() > 2 * 1024 * 1024) { // 2MB
                     throw new \Exception("El archivo no debe superar los 2MB.");
                 }
-            
+
                 // Eliminar el archivo anterior si existe
                 if (!empty($vacante->content)) {
                     $oldFilePath = storage_path("app/public/{$vacante->content}");
@@ -670,20 +670,20 @@ class VacanteController extends Controller
                         unlink($oldFilePath);
                     }
                 }
-            
+
                 // Definir el nombre del archivo con timestamp para evitar duplicados
                 $fileName = time() . '_' . $file->getClientOriginalName();
-            
+
                 // Guardar el archivo con un nombre predecible
                 $file->storeAs('public/pdfs', $fileName);
-            
+
                 // Actualizar la base de datos directamente
                 $vacante->update(['content' => 'pdfs/' . $fileName]);
             }
-            
-            
+
+
             $vacante->save();
-            
+
 
             DB::table('assigned_vacancies')
                 ->where('ee_vacancy_code', $vacante->nrc)
@@ -1115,81 +1115,97 @@ class VacanteController extends Controller
             $file = $request->file('csv_file');
             $csvData = file_get_contents($file);
 
+            // Eliminar el BOM si está presente
             $bom = pack('H*', 'EFBBBF');
             $csvData = preg_replace("/^$bom/", '', $csvData);
 
             $rows = array_map('str_getcsv', explode("\n", $csvData));
 
             $header = null;
+            $currentAcademic = null;
             $filteredRows = [];
-            $currentPlaza = null;
 
             foreach ($rows as $row) {
                 $row = array_map('trim', $row);
 
-                // Detectar un nuevo académico
-                if (preg_match('/Académico:\s*([\d]+-[A-ZÁÉÍÓÚÑ ]+)/', implode(' ', $row), $matches)) {
-                    $currentAcademic = $matches[1]; // Guarda el académico actual
+                // Detectar si la fila contiene "Académico: ..."
+                if (isset($row[0]) && str_contains($row[0], 'Académico:')) {
+                    $academicLine = str_replace('Académico:', '', $row[0]);
+                    $academicLine = trim($academicLine);
+
+                    // Cortamos lo que venga después de "Antigüedad:"
+                    $pos = mb_strpos($academicLine, 'Antigüedad:');
+                    if ($pos !== false) {
+                        $academicLine = mb_substr($academicLine, 0, $pos);
+                        $academicLine = trim($academicLine);
+                    }
+
+                    // Separamos número y nombre del académico
+                    $parts = explode('-', $academicLine, 2);
+                    $currentAcademic = count($parts) === 2
+                        ? trim($parts[1]) . ' - ' . trim($parts[0])
+                        : $academicLine;
+
                     continue;
                 }
 
-                // Detectar una nueva plaza
-                if (preg_match('/Plaza:\s*(\d+)/', implode(' ', $row), $matches)) {
-                    $currentPlaza = $matches[1];
-                    continue;
-                }
-
+                // Detectar el encabezado
                 if (count(array_filter($row)) > 3 && is_null($header)) {
                     $header = $row;
-                    $header[] = 'Plaza';
-                    $header[] = 'Academic';
                     continue;
                 }
 
-                if ($header && count($row) == count($header) - 1) {
-                    $row[] = $currentPlaza;
-                    $row[] = $currentAcademic;
-                    $filteredRows[] = $row;
+                // Si ya tenemos encabezado y la fila coincide en columnas, la guardamos
+                if ($header && count($row) == count($header)) {
+                    $data = array_combine($header, $row);
+                    $data['academic'] = $currentAcademic;
+
+                    // Filtrar solo las vacantes válidas
+                    if (
+                        ($data['Imparte'] ?? '') === 'NO' &&
+                        empty($data['Nombre del suplente / interino'] ?? '')
+                    ) {
+                        $filteredRows[] = $data;
+                    }
                 }
             }
 
             if (!$header) {
                 Log::error('No se encontró un encabezado válido en el archivo CSV.');
-                return redirect()->back()->with('status', 'error')->with('error_message', 'Encabezado no válido en el archivo CSV.');
+                return redirect()->back()->with('status', 'error')
+                    ->with('error_message', 'Encabezado no válido en el archivo CSV.');
             }
 
             Log::info('Archivo CSV procesado correctamente.');
 
+            // Obtener el periodo escolar activo
             $activePeriod = SchoolPeriod::where('current', 1)->first();
             if (!$activePeriod) {
                 Log::error('No se encontró un periodo escolar activo.');
-                return redirect()->back()->with('status', 'error')->with('error_message', 'No hay periodo escolar activo.');
+                return redirect()->back()->with('status', 'error')
+                    ->with('error_message', 'No hay periodo escolar activo.');
             }
 
-            foreach ($filteredRows as $row) {
-                $data = array_combine($header, $row);
+            foreach ($filteredRows as $data) {
+                $nrc           = $data['NRC'] ?? null;
+                $programCode   = $data['Clave Programática'] ?? null;
+                $experienceName= $data['Experiencia Educativa'] ?? null;
+                $numPlaza      = isset($data['Plaza']) ? trim($data['Plaza']) : null;
 
-                // Verificar condiciones antes de registrar
-                if (($data['Imparte'] ?? '') !== 'NO' || !empty($data['Nombre del suplente / interino'])) {
-                    Log::info("Fila omitida por condiciones de Imparte y suplente: " . json_encode($data));
-                    continue;
-                }
+                $reasonCode    = $data['Motivo RH'] ?? null;
+                $academic      = $data['academic']   ?? null;
 
-                $nrc = $data['NRC'] ?? null;
-                $programCode = $data['Clave Programática'] ?? null;
-                $experienceName = $data['Experiencia Educativa'] ?? null;
-                $numPlaza = $data['Plaza'] ?? null;
-                $reason_code=$data['Motivo RH'] ?? null;
-                $academic = $data['Academic'] ?? null;
-
-                if (empty($nrc) || empty($programCode) || empty($experienceName) || empty($reason_code)){
+                if (empty($nrc) || empty($programCode) || empty($experienceName)) {
                     Log::warning("Fila ignorada por falta de datos: " . json_encode($data));
                     continue;
                 }
 
-                $educationalExperience = Curriculum_Educational_Experiences::whereHas('educationalExperience', function ($query) use ($experienceName) {
-                    $query->where('name', $experienceName);
-                })->whereHas('curriculum', function ($query) use ($programCode) {
+                $educationalExperience = Curriculum_Educational_Experiences::whereHas(
+                    'educationalExperience',
+                    function ($query) use ($experienceName) {
+                        $query->where('name', $experienceName);
+                    }
+                )->whereHas('curriculum', function ($query) use ($programCode) {
                     $query->where('educational_programs_code', $programCode);
                 })->first();
 
@@ -1205,7 +1221,7 @@ class VacanteController extends Controller
                     continue;
                 }
 
-                $region_code = $relation->region_code;
+                $region_code      = $relation->region_code;
                 $departament_code = $relation->departament_code;
 
                 if (Educational_Experience_Vacancies::where('nrc', $nrc)->exists()) {
@@ -1214,34 +1230,28 @@ class VacanteController extends Controller
                 }
 
                 Educational_Experience_Vacancies::create([
-                    'nrc' => $nrc,
-                    'school_period_code' => $activePeriod->code,
-                    'region_code' => $region_code,
-                    'departament_code' => $departament_code,
-                    'area_code' => $educationalExperience->area_code,
-                    'educational_experience_code' => $ee_code,
-                    'educational_program_code' => $programCode,
-                    'class' => $data['Clase'] ?? '',
-                    'subGroup' => $data['Subgrupo'] ?? '',
-                    'numPlaza' => $numPlaza,
-                    'reason_code' => $reason_code,
-                    'academic' => $academic,
+                    'nrc'                           => $nrc,
+                    'school_period_code'            => $activePeriod->code,
+                    'region_code'                   => $region_code,
+                    'departament_code'              => $departament_code,
+                    'area_code'                     => $educationalExperience->area_code,
+                    'educational_experience_code'   => $ee_code,
+                    'educational_program_code'      => $programCode,
+                    'class'                         => $data['Clase'] ?? '',
+                    'subGroup'                      => $data['Subgrupo'] ?? '',
+                    'numPlaza'                      => $numPlaza,
+                    'reason_code'                   => $reasonCode,
+                    'academic'                      => $academic,
                 ]);
 
                 Log::info("Vacante registrada: NRC $nrc, EE $ee_code, Program Code $programCode, Num Plaza $numPlaza");
             }
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Archivo CSV procesado correctamente.',
-            ]);
-
+            return redirect()->back()->with('status', 'success');
         } catch (\Exception $e) {
             Log::error("Error al procesar el CSV: " . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 500);
+            return redirect()->back()->with('status', 'error')
+                ->with('error_message', $e->getMessage());
         }
     }
 }
