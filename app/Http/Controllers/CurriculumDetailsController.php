@@ -10,6 +10,7 @@ use App\Providers\LogUserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CurriculumDetailsController extends Controller
 {
@@ -108,20 +109,39 @@ class CurriculumDetailsController extends Controller
         ]);
 
         try {
+            Log::info("Iniciando la carga del archivo CSV.");
+
             if ($file = $request->file('csv_file')) {
-                // Abrir el archivo usando fopen
                 if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
-                    // Obtener el encabezado
                     if (($header = fgetcsv($handle, 1000, ',')) !== false) {
+                        Log::info("Encabezado del CSV leído correctamente: " . json_encode($header));
+
+                        $totalRows = 0;
+                        $insertedRows = 0;
+                        $skippedRows = 0;
+
                         while (($data = fgetcsv($handle, 1000, ',')) !== false) {
-                            // Verificar que la fila no esté vacía y tenga el número correcto de columnas
+                            $totalRows++;
+
+                            // Verificar que la fila tenga contenido válido
                             if (empty(array_filter($data)) || count($data) != count($header)) {
+                                Log::warning("Fila omitida (vacía o con datos incompletos): " . json_encode($data));
+                                $skippedRows++;
                                 continue;
                             }
 
                             $row = array_combine($header, $data);
                             $curriculum_code = $request->curriculum_code;
                             $ee_code = $row['MATCUR'] ?? null;
+
+                            Log::info("Procesando fila {$totalRows}: " . json_encode($row));
+
+                            // Si no hay código de experiencia educativa, se omite la fila
+                            if (!$ee_code) {
+                                Log::warning("Fila omitida (sin código de experiencia educativa): " . json_encode($row));
+                                $skippedRows++;
+                                continue;
+                            }
 
                             // Crear o buscar la experiencia educativa
                             $educationalExperience = EducationalExperience::firstOrCreate(
@@ -132,29 +152,38 @@ class CurriculumDetailsController extends Controller
                                 ]
                             );
 
+                            Log::info("Experiencia educativa registrada o existente: " . json_encode($educationalExperience->toArray()));
+
                             // Verificar si la relación ya existe
                             $relationExists = Curriculum_Educational_Experiences::where('curriculum_code', $curriculum_code)
                                 ->where('ee_code', $ee_code)
                                 ->exists();
 
-                            if (!$relationExists) {
-                                // Se recomienda pasar directamente los datos necesarios a la función store,
-                                // en lugar de modificar el objeto Request original
+                            if ($relationExists) {
+                                Log::warning("Relación ya existente para curriculum_code: {$curriculum_code}, ee_code: {$ee_code}");
+                            } else {
+                                // Guardar la nueva relación
                                 $dataRelation = [
                                     'curriculum_code' => $curriculum_code,
                                     'ee_code'         => $ee_code,
                                 ];
 
-                                // Asegúrate de que el método store acepte este arreglo o ajusta la lógica.
                                 $this->store(new Request($dataRelation));
+                                Log::info("Relación curriculum-experience creada: " . json_encode($dataRelation));
+
+                                $insertedRows++;
                             }
                         }
                     }
+
                     fclose($handle);
+                    Log::info("Proceso finalizado. Total filas procesadas: {$totalRows}, insertadas: {$insertedRows}, omitidas: {$skippedRows}");
+
+                    return redirect()->back()->with('status', 'success');
                 }
-                return redirect()->back()->with('status', 'success');
             }
         } catch (\Exception $e) {
+            Log::error("Error durante la carga del CSV: " . $e->getMessage());
             return redirect()->back()
                 ->with('status', 'error')
                 ->with('error_message', $e->getMessage());
