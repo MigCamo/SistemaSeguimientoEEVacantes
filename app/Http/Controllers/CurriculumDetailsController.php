@@ -10,9 +10,46 @@ use App\Providers\LogUserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CurriculumDetailsController extends Controller
 {
+
+    public function search(Request $request)
+    {
+        $curriculumCode = $request->input('curriculum_code');
+        $tipo = $request->input('tipo'); // Puede ser 'code' o 'name'
+        $search = $request->input('search');
+
+        // Obtener el currículum
+        $curriculum = DB::table('curriculums')->where('code', $curriculumCode)->first();
+
+        // Construir la consulta base
+        $query = DB::table('educational_experiences')
+            ->join('curriculum_educational_experiences', 'educational_experiences.code', '=', 'curriculum_educational_experiences.ee_code')
+            ->where('curriculum_educational_experiences.curriculum_code', $curriculumCode);
+
+        // Aplicar filtro de búsqueda si hay texto
+        if ($search) {
+            if ($tipo === 'code') {
+                $query->where('educational_experiences.code', 'LIKE', "%{$search}%");
+            } elseif ($tipo === 'name') {
+                $query->where('educational_experiences.name', 'LIKE', "%{$search}%");
+            }
+        }
+
+        // Obtener los datos paginados
+        $educationExperiencesList = $query
+            ->select('educational_experiences.code', 'educational_experiences.name', 'educational_experiences.hours')
+            ->paginate(10)
+            ->withQueryString();
+
+        // Enviar a la vista
+        return view('curriculumDetails.index', compact('educationExperiencesList', 'curriculum'));
+    }
+
+
+
     public function index(Request $request)
     {
         $curriculumCode = $request->get('curriculumCode');
@@ -72,41 +109,85 @@ class CurriculumDetailsController extends Controller
         ]);
 
         try {
+            Log::info("Iniciando la carga del archivo CSV.");
+
             if ($file = $request->file('csv_file')) {
-                $csvData = file_get_contents($file);
-                $rows = array_map('str_getcsv', explode("\n", $csvData));
-                $header = array_shift($rows);
+                if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+                    if (($header = fgetcsv($handle, 1000, ',')) !== false) {
+                        Log::info("Encabezado del CSV leído correctamente: " . json_encode($header));
 
-                foreach ($rows as $row) {
-                    if (count($row) == count($header)) {
-                        $data = array_combine($header, $row);
-                        $curriculum_code = $request->curriculum_code;
-                        $ee_code = $data['MATCUR'] ?? null;
+                        $totalRows = 0;
+                        $insertedRows = 0;
+                        $skippedRows = 0;
 
-                        $educationalExperience = EducationalExperience::firstOrCreate(
-                            ['code' => $ee_code],
-                            ['name' => $data['TEXG'] ?? null,
-                            'hours' => $data['HRS'] ?? null]
-                        );
+                        while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+                            $totalRows++;
 
-                        $relationExists = Curriculum_Educational_Experiences::where('curriculum_code', $curriculum_code)
-                            ->where('ee_code', $ee_code)
-                            ->exists();
+                            // Verificar que la fila tenga contenido válido
+                            if (empty(array_filter($data)) || count($data) != count($header)) {
+                                Log::warning("Fila omitida (vacía o con datos incompletos): " . json_encode($data));
+                                $skippedRows++;
+                                continue;
+                            }
 
-                        if (!$relationExists) {
-                            $request->merge([
-                                'curriculum_code' => $curriculum_code,
-                                'ee_code' => $ee_code
-                            ]);
+                            $row = array_combine($header, $data);
+                            $curriculum_code = $request->curriculum_code;
+                            $ee_code = $row['MATCUR'] ?? null;
 
-                            $this->store($request);
+                            Log::info("Procesando fila {$totalRows}: " . json_encode($row));
+
+                            // Si no hay código de experiencia educativa, se omite la fila
+                            if (!$ee_code) {
+                                Log::warning("Fila omitida (sin código de experiencia educativa): " . json_encode($row));
+                                $skippedRows++;
+                                continue;
+                            }
+
+                            // Crear o buscar la experiencia educativa
+                            $educationalExperience = EducationalExperience::firstOrCreate(
+                                ['code' => $ee_code],
+                                [
+                                    'name'  => $row['TEXG'] ?? null,
+                                    'hours' => $row['HRS'] ?? null,
+                                ]
+                            );
+
+                            Log::info("Experiencia educativa registrada o existente: " . json_encode($educationalExperience->toArray()));
+
+                            // Verificar si la relación ya existe
+                            $relationExists = Curriculum_Educational_Experiences::where('curriculum_code', $curriculum_code)
+                                ->where('ee_code', $ee_code)
+                                ->exists();
+
+                            if ($relationExists) {
+                                Log::warning("Relación ya existente para curriculum_code: {$curriculum_code}, ee_code: {$ee_code}");
+                            } else {
+                                // Guardar la nueva relación
+                                $dataRelation = [
+                                    'curriculum_code' => $curriculum_code,
+                                    'ee_code'         => $ee_code,
+                                ];
+
+                                $this->store(new Request($dataRelation));
+                                Log::info("Relación curriculum-experience creada: " . json_encode($dataRelation));
+
+                                $insertedRows++;
+                            }
                         }
                     }
+
+                    fclose($handle);
+                    Log::info("Proceso finalizado. Total filas procesadas: {$totalRows}, insertadas: {$insertedRows}, omitidas: {$skippedRows}");
+
+                    return redirect()->back()->with('status', 'success');
                 }
-                return redirect()->back()->with('status', 'success');
             }
         } catch (\Exception $e) {
-            return redirect()->back()->with('status', 'error')->with('error_message', $e->getMessage());
+            Log::error("Error durante la carga del CSV: " . $e->getMessage());
+            return redirect()->back()
+                ->with('status', 'error')
+                ->with('error_message', $e->getMessage());
         }
     }
+
 }
