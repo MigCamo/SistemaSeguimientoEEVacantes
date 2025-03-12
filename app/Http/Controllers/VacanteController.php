@@ -44,7 +44,6 @@ class VacanteController extends Controller
     public function index(IndexVacanteRequest $request)
     {
         $user = auth()->user()->id;
-        $userSelectDependencia = auth()->user()->dependencia;
         $vacantes = [];
         $countVacantes = 0;
 
@@ -59,82 +58,67 @@ class VacanteController extends Controller
 
         $programasEducUsuario = [];
         // Si el rol es admin
-        if($userRol){
+        if ($userRol) {
 
-            $vac= Educational_Experience_Vacancies::all();
-                $programasEducUsuario = [];
-                $zona = "";
-                $dependencia = "";
-                $programa = "";
-                $filtro = "";
-                $busqueda = "";
-                $isDeleted = false;
-                $vacantes = DB::table('educational_experience_vacancies as ev')
-                    ->join('school_periods as sp', function($join) {
-                        $join->on('ev.school_period_code', '=', 'sp.code')
-                            ->where('sp.current', '=', 1);
-                    })
-                    ->join('educational_experiences as ee', 'ev.educational_experience_code', '=', 'ee.code')
-                    ->leftJoin('assigned_vacancies as av', 'ev.nrc', '=', 'av.ee_vacancy_code')
-                    ->select(
-                        'ev.*',
-                        'ee.*',
-                        'ev.type_contract as ev_type_contract',  // Alias para evitar confusión
-                        'ev.reason_code as ev_reason_code',      // Alias para evitar confusión
-                        'sp.code as period_code',
-                        'sp.current',
-                        'av.reason_code as av_reason_code',      // Alias para identificar de dónde viene
-                        'av.type_asignation_code',
-                        'av.lecturer_code',
-                        'av.*'
-                    )
-                    ->paginate(15);
-        }else{
-
-            $vac = DB::table('educational_experience_vacancies')
-                ->where('departament_code', '=', $userSelectDependencia)
-                ->get();
-
-            $user = auth()->user();
-            $zona = $user->zona;
-            $dependencia = $user->dependencia;
+            $vac = Educational_Experience_Vacancies::all();
+            $programasEducUsuario = [];
+            $zona = "";
+            $dependencia = "";
+            $programa = "";
+            $filtro = "";
+            $busqueda = "";
             $isDeleted = false;
-            $programasEducUsuario = DB::table('zona__dependencia__programas')
-                ->where('id_zona','=',$zona)
-                ->where('clave_dependencia','=',$dependencia)
-                ->get();
-
-            if (count($vac) === 0 ){
-
-                $programa = "";
-                $filtro = "";
-                $busqueda = "";
-                $isDeleted = false;
-
-                $vacantes = DB::table('vacantes')
-                    ->join('periodos',function($join) use ($zona,$dependencia){
-                        $join->on('vacantes.clavePeriodo','=','periodos.clavePeriodo')
-                            ->where('periodos.actual',"=",1)
-                            ->whereNull('deleted_at')
-                            ->where('numZona','=',$zona)
-                            ->where('numDependencia','=',$dependencia);
-                    })
-                    ->paginate('10')
-                ;
-
-            }else{
-                /**
-                $programa = $userSelect->clave_programa;
-                $filtro = $userSelect->filtro;
-                $busqueda = $userSelect->busqueda;
-                $isDeleted = $filtro=="VacantesCerradas";
-
-                $vacantes = $this->busquedaVacante($zona,$dependencia,$programa,$filtro,$busqueda);
-                $countVacantes = $vacantes->count();
-
-                $nombrePrograma = DB::table('zona__dependencia__programas')->where('clave_programa',$programa)->value('nombre_programa');*/
-            }
-
+            $vacantes = DB::table('educational_experience_vacancies as ev')
+                ->join('school_periods as sp', function ($join) {
+                    $join->on('ev.school_period_code', '=', 'sp.code')
+                        ->where('sp.current', '=', 1);
+                })
+                ->join('educational_experiences as ee', 'ev.educational_experience_code', '=', 'ee.code')
+                ->leftJoin('assigned_vacancies as av', 'ev.nrc', '=', 'av.ee_vacancy_code')
+                ->select(
+                    'ev.*',
+                    'ee.*',
+                    'ev.type_contract as ev_type_contract',  // Alias para evitar confusión
+                    'ev.reason_code as ev_reason_code',     // Alias para evitar confusión
+                    'sp.code as period_code',
+                    'sp.current',
+                    'av.reason_code as av_reason_code',     // Alias para identificar de dónde viene
+                    'av.type_asignation_code',
+                    'av.lecturer_code',
+                    'av.*'
+                )
+                ->paginate(15);
+        } else {
+            $userSelectDependencia = auth()->user()->dependencia;
+            $vac = Educational_Experience_Vacancies::all();
+            $programasEducUsuario = [];
+            $zona = "";
+            $dependencia = "";
+            $programa = "";
+            $filtro = "";
+            $busqueda = "";
+            $isDeleted = false;
+            $vacantes = DB::table('educational_experience_vacancies as ev')
+                ->join('school_periods as sp', function ($join) use ($userSelectDependencia) {
+                    $join->on('ev.school_period_code', '=', 'sp.code')
+                        ->where('sp.current', '=', 1)
+                        ->where('ev.departament_code', $userSelectDependencia);
+                })
+                ->join('educational_experiences as ee', 'ev.educational_experience_code', '=', 'ee.code')
+                ->leftJoin('assigned_vacancies as av', 'ev.nrc', '=', 'av.ee_vacancy_code')
+                ->select(
+                    'ev.*',
+                    'ee.*',
+                    'ev.type_contract as ev_type_contract',
+                    'ev.reason_code as ev_reason_code',
+                    'sp.code as period_code',
+                    'sp.current',
+                    'av.reason_code as av_reason_code',
+                    'av.type_asignation_code',
+                    'av.lecturer_code',
+                    'av.*'
+                )
+                ->paginate(15);
         }
 
         // Zonas disponibles para mostrar
