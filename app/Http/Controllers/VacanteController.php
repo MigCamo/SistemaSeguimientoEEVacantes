@@ -691,6 +691,7 @@ class VacanteController extends Controller
                 $vacante->content = "{$folder}/{$fileName}";
             }
 
+
             $vacante->save();
 
             $assignedVacancy = AssignedVacancy::where('ee_vacancy_code', $vacante->nrc)->first();
