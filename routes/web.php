@@ -264,6 +264,7 @@ Route::controller(CurriculumDetailsController::class)->group(function (){
         Route::get('/curriculumDetails',  'index')->name('index');
         Route::get('/curriculumDetails/create',  'create')->name('create');
         Route::post('/curriculumDetails',  'store')->name('store');
+        Route::get('/curriculumDetails/search', [CurriculumDetailsController::class, 'search'])->name('search');
         Route::delete('/curriculumDetails/destroy/{ee_code}/{curriculum_code}',  'destroy')->name('destroy');
         Route::get('/curriculumDetails/edit/{code}', 'edit')->name('edit');
         Route::post('/curriculumDetails/update/{code}', 'update')->name('update');
