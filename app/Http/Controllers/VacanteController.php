@@ -87,7 +87,7 @@ class VacanteController extends Controller
                     'av.lecturer_code',
                     'av.*'
                 )
-                ->paginate(15);
+                ->paginate(1000000);
         } else {
             $userSelectDependencia = auth()->user()->dependencia;
             $vac = Educational_Experience_Vacancies::all();
@@ -118,7 +118,7 @@ class VacanteController extends Controller
                     'av.lecturer_code',
                     'av.*'
                 )
-                ->paginate(15);
+                ->paginate(1000000);
         }
 
         // Zonas disponibles para mostrar
