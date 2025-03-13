@@ -629,7 +629,7 @@ class VacanteController extends Controller
                 ->where('ee_vacancy_code', $vacante->nrc)
                 ->first();
 
-            if ($docenteActual->lecturer_code != $request->numPersonalDocente) {
+            if ($docenteActual && $docenteActual->lecturer_code != $request->numPersonalDocente) {
                 $docenteAnterior = DB::table('lecturers')
                     ->where('staff_number', $docenteActual->lecturer_code)
                     ->first();
@@ -666,7 +666,12 @@ class VacanteController extends Controller
             $vacante->subGroup = $request->subGrupo ?? 1;
             $vacante->numPlaza = $request->numPlaza;
             $vacante->reason_code = $request->numMotivo;
-            $vacante->academic = $request->academic;
+            if (!empty($vacante->academic) && empty($request->academic)) {
+                
+            } else {
+                // Permitir el cambio si el nuevo valor es válido
+                $vacante->academic = $request->academic;
+            }
             $vacante->type_contract = $request->tipoContratacion;
 
             if ($request->hasFile('file')) {
@@ -713,7 +718,7 @@ class VacanteController extends Controller
 
             if ($assignedVacancy) {
                 $assignedVacancy->update([
-                    'lecturer_code' => $request->numPersonalDocente,
+                    'lecturer_code' => $request->numPersonalDocente ?? null,
                     'type_asignation_code' => $request->tipoAsignacion,
                     'noticeDate' => !empty($request->fechaAviso) ? Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d') : null,
                     'assignmentDate' => !empty($request->fechaAsignacion) ? Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d') : null,
