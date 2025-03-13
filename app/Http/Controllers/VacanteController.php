@@ -643,12 +643,12 @@ class VacanteController extends Controller
             $vacante->school_period_code = $request->periodo;
             $vacante->region_code = $request->numZona;
             $vacante->departament_code = $request->numDependencia;
-            $vacante->area_code = $request->grupo;
+            $vacante->area_code = $request->grupo ?? 1;
             $vacante->educational_program_code = $request->numPrograma;
             $vacante->educational_experience_code = $request->numMateria;
             $vacante->nrc = $request->nrc;
-            $vacante->class = $request->grupo;
-            $vacante->subGroup = $request->subGrupo;
+            $vacante->class = $request->grupo ?? 1;
+            $vacante->subGroup = $request->subGrupo ?? 1;
             $vacante->numPlaza = $request->numPlaza;
             $vacante->reason_code = $request->numMotivo;
             $vacante->academic = $request->academic;

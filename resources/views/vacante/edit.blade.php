@@ -166,7 +166,7 @@
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
                                     <label for="numPlaza" class="labelForms">Grupo</label>
                                     <input type="number" name="grupo" id="grupo" class="inputForms"
-                                           required value="{{$vacante->class}}">
+                                           value="{{$vacante->class}}">
                                 </div>
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">

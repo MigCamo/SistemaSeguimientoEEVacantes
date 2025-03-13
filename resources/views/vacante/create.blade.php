@@ -120,14 +120,13 @@
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
                                     <label for="grupo" class="labelForms">NRC</label>
                                     <input type="text" name="nrc" id="nrc" class="inputForms"
-                                           placeholder=""
-                                           required>
+                                           placeholder="">
                                 </div>
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
                                     <label for="grupo" class="labelForms">Grupo</label>
                                     <input type="number" name="grupo" id="grupo" class="inputForms"
-                                           placeholder="Ej. 1523" required>
+                                           placeholder="Ej. 1523">
                                 </div>
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
