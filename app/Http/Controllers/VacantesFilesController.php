@@ -46,11 +46,11 @@ class VacantesFilesController extends Controller
 
             $departamento = null;
             $periodo = null;
-            $programas = []; // Cambiado a un array de programas
+            $programas = [];
 
             if ($fila5 && isset($fila5[0])) {
                 $celdaValor5 = $fila5[0];
-                $departamento = substr($celdaValor5, 14, 5); // Saltar 14 caracteres y leer 5
+                $departamento = substr($celdaValor5, 14, 5);
             }
 
             if ($fila7 && isset($fila7[0])) {
@@ -78,28 +78,28 @@ class VacantesFilesController extends Controller
                                 'programa' => $programaActual,
                                 'experiencias' => $experienciasActuales,
                             ];
-                            $experienciasActuales = []; // Reiniciar las experiencias
+                            $experienciasActuales = [];
                         }
 
                         $programaActual = trim(substr($celdaValor, $posicionPrograma + strlen('Programa: '), 5));
                         fgetcsv($archivo); // Saltar una fila
                     } elseif ($programaActual !== null && is_numeric(substr($fila[0], 0, 1))) {
-                        // Leer experiencias para el programa actual
-                        $experienciasActuales[] = [
-                            'nrc' => $fila[0],
-                            'nombreExperiencia' => $fila[1],
-                            'horasPago' => $fila[2],
-                            'numPlaza' => $fila[3],
-                            'numPersonal' => $fila[10],
-                            'nombreDocente' => $fila[11],
-                        ];
+                        // **Verifica si las columnas 10 y 11 están vacías antes de agregar la experiencia**
+                        if (empty($fila[10]) && empty($fila[11])) {
+                            $experienciasActuales[] = [
+                                'nrc' => $fila[0],
+                                'nombreExperiencia' => $fila[1],
+                                'horasPago' => $fila[2],
+                                'numPlaza' => $fila[3],
+                            ];
+                        }
                     } elseif ($programaActual !== null && (empty($fila[0]) || !is_numeric(substr($fila[0], 0, 1)))) {
                         // Fin de las experiencias para el programa actual
                         $programas[] = [
                             'programa' => $programaActual,
                             'experiencias' => $experienciasActuales,
                         ];
-                        $programaActual = null; // Reiniciar el programa actual
+                        $programaActual = null;
                         $experienciasActuales = [];
                     }
                 }
@@ -113,7 +113,6 @@ class VacantesFilesController extends Controller
                 ];
             }
 
-            
             fclose($archivo);
 
             if ($departamento !== null && $periodo !== null) {
@@ -122,6 +121,7 @@ class VacantesFilesController extends Controller
         }
         return null;
     }
+
 
     private function guardarDatosEnBD($datos)
     {
@@ -159,7 +159,7 @@ class VacantesFilesController extends Controller
                     $vacante->educational_program_code = $programa['programa'];
                     $vacante->numPlaza = $experiencia['numPlaza'];
                     $vacante->reason_code = 1;
-                    $vacante->academic = $experiencia['nombreDocente'];
+                    $vacante->academic = null;
                     $vacante->save(); // Guardar la vacante
 
                 }
