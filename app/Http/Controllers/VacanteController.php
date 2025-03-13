@@ -323,15 +323,15 @@ class VacanteController extends Controller
             $vacante->school_period_code = $request->periodo;
             $vacante->region_code = $request->numZona;
             $vacante->departament_code = $request->numDependencia;
-            $vacante->area_code = $request->grupo;
+            $vacante->area_code = $request->grupo ?? 1;
             $vacante->educational_program_code = $request->numPrograma;
             $vacante->educational_experience_code = $request->numMateria;
             $vacante->nrc = $request->nrc;
-            $vacante->class = $request->grupo;
-            $vacante->subGroup = $request->subgrupo;
+            $vacante->class = $request->grupo ?? 1;
+            $vacante->subGroup = $request->subgrupo ?? 1;
             $vacante->numPlaza = $request->numPlaza;
             $vacante->reason_code = $request->numMotivo;
-            $vacante->academic = $request->academic;
+            $vacante->academic = $request->academic ?? null;
             $vacante->type_contract = $request->tipoContratacion;
 
             if ($request->hasFile('file')) {
@@ -367,12 +367,23 @@ class VacanteController extends Controller
             // 3. Crear la vacante asignada en Assigned_Vacancy
             $assignedVacancy = new AssignedVacancy();
             $assignedVacancy->ee_vacancy_code = $vacante->nrc; // Se usa el NRC generado
-            $assignedVacancy->lecturer_code = $request->numPersonalDocente;
+            $assignedVacancy->lecturer_code = $request->numPersonalDocente ?? null;
             $assignedVacancy->type_asignation_code = $request->tipoAsignacion;
-            $assignedVacancy->noticeDate = !empty($request->fechaAviso) ? Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d') : null;
-            $assignedVacancy->assignmentDate = !empty($request->fechaAsignacion) ? Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d') : null;
-            $assignedVacancy->openingDate = !empty($request->fechaApertura) ? Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d') : null;
-            $assignedVacancy->closingDate = !empty($request->fechaCierre) ? Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d') : null;
+            $assignedVacancy->noticeDate = !empty($request->fechaAviso) 
+                ? Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d') 
+                : Carbon::now()->format('Y-m-d');
+
+            $assignedVacancy->assignmentDate = !empty($request->fechaAsignacion) 
+                ? Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d') 
+                : Carbon::now()->format('Y-m-d');
+
+            $assignedVacancy->openingDate = !empty($request->fechaApertura) 
+                ? Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d') 
+                : Carbon::now()->format('Y-m-d');
+
+            $assignedVacancy->closingDate = !empty($request->fechaCierre) 
+                ? Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d') 
+                : Carbon::now()->format('Y-m-d');
             $assignedVacancy->notes = $request->observaciones ?? '';
             $assignedVacancy->save();
 
@@ -382,6 +393,7 @@ class VacanteController extends Controller
             return redirect()->route('vacante.index')->with('success', 'Vacante creada correctamente');
         } catch (\Exception $e) {
             DB::rollback();
+            dd($e->getMessage());
             return redirect()->route('vacante.index')->with('error', 'Error al crear la vacante: ' . $e->getMessage());
         }
     }

@@ -205,7 +205,7 @@
                                     </div>
 
                                     <div class="col-span-6">
-                                        <label for="fechaAviso" class="labelForms">Fecha de aviso</label>
+                                        <label for="fechaAviso" class="labelForms">Fecha de publicación</label>
                                         <div class="relative">
                                             <div
                                                 class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
@@ -225,7 +225,7 @@
                                     </div>
 
                                     <div class="col-span-6 sm:col-span-3 lg:col-span-3">
-                                        <label for="fechaAsignacion" class="labelForms">Fecha de asignación</label>
+                                        <label for="fechaAsignacion" class="labelForms">Fecha de publicación de resultados</label>
                                         <div class="relative">
                                             <div
                                                 class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">

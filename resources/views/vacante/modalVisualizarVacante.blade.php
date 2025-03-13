@@ -29,8 +29,8 @@
                 {{ DB::table('lecturers')->where('staff_number', $vacante->lecturer_code)->value(DB::raw("CONCAT(names, ' ', lastName, ' ', maternal_surname)")) }} - {{ $vacante->lecturer_code }}
             </div>
             <div><strong>Tipo de contración:</strong> {{$vacante->type_contract}}</div>
-            <div><strong>Fecha de aviso:</strong> {{$vacante->noticeDate}}</div>
-            <div><strong>Fecha de asignación:</strong> {{$vacante->assignmentDate}}</div>
+            <div><strong>Fecha de publicación:</strong> {{$vacante->noticeDate}}</div>
+            <div><strong>Fecha de publicación de resultados:</strong> {{$vacante->assignmentDate}}</div>
             <div><strong>Fecha de apertura:</strong> {{$vacante->openingDate}}</div>
             <div><strong>Fecha de cierre:</strong> {{$vacante->closingDate}}</div>
             <div class="col-span-2"><strong>Observaciones:</strong> {{$vacante->notes}}</div>

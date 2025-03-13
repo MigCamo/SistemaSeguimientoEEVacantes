@@ -118,9 +118,8 @@
 
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                    <label for="grupo" class="labelForms">NRC</label>
-                                    <input type="text" name="nrc" id="nrc" class="inputForms"
-                                           placeholder="">
+                                    <label for="nrc" class="labelForms">NRC</label>
+                                    <input type="text" name="nrc" id="nrc" class="inputForms" placeholder="" required>
                                 </div>
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
@@ -159,8 +158,7 @@
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
                                     <label for="tipoAsignacion" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Tipo de Asignación</label>
-                                    {{--<select  id="tipoAsignacion" name="tipoAsignacion" class="estiloSelect" required>--}}
-                                    <select  id="tipoAsignacion" name="tipoAsignacion" class="estiloSelect">
+                                    <select id="tipoAsignacion" name="tipoAsignacion" class="estiloSelect" required>
                                         <option value="">Selecciona el tipo de asignación</option>
                                         @foreach ($tiposAsignacion as $data)
                                             <option value="{{$data->id}}">
@@ -216,7 +214,7 @@
 
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                    <label for="fechaAviso" class="labelForms">Fecha de aviso</label>
+                                    <label for="fechaAviso" class="labelForms">Fecha de publicación</label>
                                     <div class="relative">
                                         <div
                                             class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
@@ -236,7 +234,7 @@
                                 </div>
 
                                 <div class="col-span-6 sm:col-span-2 lg:col-span-2">
-                                    <label for="fechaAsignacion" class="labelForms">Fecha de asignación</label>
+                                    <label for="fechaAsignacion" class="labelForms">Fecha de publicación de resultados</label>
                                     <div class="relative">
                                         <div
                                             class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
