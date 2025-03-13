@@ -693,12 +693,20 @@ class VacanteController extends Controller
 
             $vacante->save();
             
-            
-            
+            $assignedVacancy = AssignedVacancy::where('ee_vacancy_code', $vacante->nrc)->first();
 
-            DB::table('assigned_vacancies')
-                ->where('ee_vacancy_code', $vacante->nrc)
-                ->update([
+            if ($assignedVacancy) {
+                $assignedVacancy->update([
+                    'lecturer_code' => $request->numPersonalDocente,
+                    'type_asignation_code' => $request->tipoAsignacion,
+                    'noticeDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d'),
+                    'assignmentDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d'),
+                    'openingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d'),
+                    'closingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d'),
+                    'notes' => $request->observaciones ?? '',
+                ]);
+            } else {
+                AssignedVacancy::create([
                     'ee_vacancy_code' => $vacante->nrc,
                     'lecturer_code' => $request->numPersonalDocente,
                     'type_asignation_code' => $request->tipoAsignacion,
