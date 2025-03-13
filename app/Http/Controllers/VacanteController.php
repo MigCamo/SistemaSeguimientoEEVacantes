@@ -371,19 +371,19 @@ class VacanteController extends Controller
             $assignedVacancy->type_asignation_code = $request->tipoAsignacion;
             $assignedVacancy->noticeDate = !empty($request->fechaAviso) 
                 ? Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d') 
-                : Carbon::now()->format('Y-m-d');
+                : null;
 
             $assignedVacancy->assignmentDate = !empty($request->fechaAsignacion) 
                 ? Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d') 
-                : Carbon::now()->format('Y-m-d');
+                : null;
 
             $assignedVacancy->openingDate = !empty($request->fechaApertura) 
                 ? Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d') 
-                : Carbon::now()->format('Y-m-d');
+                : null;
 
             $assignedVacancy->closingDate = !empty($request->fechaCierre) 
                 ? Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d') 
-                : Carbon::now()->format('Y-m-d');
+                : null;
             $assignedVacancy->notes = $request->observaciones ?? '';
             $assignedVacancy->save();
 
@@ -393,7 +393,6 @@ class VacanteController extends Controller
             return redirect()->route('vacante.index')->with('success', 'Vacante creada correctamente');
         } catch (\Exception $e) {
             DB::rollback();
-            dd($e->getMessage());
             return redirect()->route('vacante.index')->with('error', 'Error al crear la vacante: ' . $e->getMessage());
         }
     }
@@ -525,10 +524,6 @@ class VacanteController extends Controller
         }
         $listaTiposAsignacion = DB::table('type_asignations');
 
-        if (!is_null($vacanteAsignada)) {
-            $listaTiposAsignacion = $listaTiposAsignacion->where('id', '!=', $vacanteAsignada->type_asignation_code);
-        }
-
         $listaTiposAsignacion = $listaTiposAsignacion->get();
         $periodoAsignado = DB::table('school_periods')->where('code', $vacante->school_period_code)->first();
         $zonas = Region::where('code', '!=', $vacante->region_code)->get();
@@ -634,22 +629,30 @@ class VacanteController extends Controller
                 ->where('ee_vacancy_code', $vacante->nrc)
                 ->first();
 
-            if ($docenteActual && $docenteActual->lecturer_code != $request->numPersonalDocente) {
+            if ($docenteActual->lecturer_code != $request->numPersonalDocente) {
                 $docenteAnterior = DB::table('lecturers')
                     ->where('staff_number', $docenteActual->lecturer_code)
                     ->first();
 
-                DB::table('historico_docentes')->insert([
-                    'vacanteID' => $vacante->nrc,
-                    'nPersonal' => $docenteActual->lecturer_code,
-                    'nombreDocente' => $docenteAnterior ? ($docenteAnterior->names . ' ' . $docenteAnterior->lastname . ' ' . $docenteAnterior->maternal_surname) : 'Desconocido',
-                    'tipoAsignacion' => $docenteActual->type_asignation_code,
-                    'fechaAviso' => $docenteActual->noticeDate,
-                    'fechaAsignacion' => $docenteActual->assignmentDate,
-                    'fechaRenuncia' => now()->format('Y-m-d'),
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
+                    $historicoDocente = new HistoricoDocente();
+                    $historicoDocente->vacanteID = $vacante->nrc;
+                    $historicoDocente->nPersonal = $docenteActual->lecturer_code;
+                    $historicoDocente->nombreDocente = $docenteAnterior 
+                        ? ($docenteAnterior->names . ' ' . $docenteAnterior->lastname . ' ' . $docenteAnterior->maternal_surname) 
+                        : 'Desconocido';
+                    $historicoDocente->tipoAsignacion = $docenteActual->type_asignation_code;
+                    $historicoDocente->fechaAviso = !empty($docenteActual->noticeDate) 
+                        ? $docenteActual->noticeDate 
+                        : Carbon::now()->format('Y-m-d');
+                    $historicoDocente->fechaAsignacion = !empty($docenteActual->assignmentDate) 
+                        ? $docenteActual->assignmentDate 
+                        : Carbon::now()->format('Y-m-d');
+                    $historicoDocente->fechaRenuncia = Carbon::now()->format('Y-m-d');
+                    $historicoDocente->created_at = now();
+                    $historicoDocente->updated_at = now();
+                    
+                    // Guardar en la base de datos
+                    $historicoDocente->save();
             }
 
             $vacante->school_period_code = $request->periodo;
@@ -712,10 +715,10 @@ class VacanteController extends Controller
                 $assignedVacancy->update([
                     'lecturer_code' => $request->numPersonalDocente,
                     'type_asignation_code' => $request->tipoAsignacion,
-                    'noticeDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d'),
-                    'assignmentDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d'),
-                    'openingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d'),
-                    'closingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d'),
+                    'noticeDate' => !empty($request->fechaAviso) ? Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d') : null,
+                    'assignmentDate' => !empty($request->fechaAsignacion) ? Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d') : null,
+                    'openingDate' => !empty($request->fechaApertura) ? Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d') : null,
+                    'closingDate' => !empty($request->fechaCierre) ? Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d') : null,
                     'notes' => $request->observaciones ?? '',
                 ]);
             } else {
@@ -723,10 +726,10 @@ class VacanteController extends Controller
                     'ee_vacancy_code' => $vacante->nrc,
                     'lecturer_code' => $request->numPersonalDocente,
                     'type_asignation_code' => $request->tipoAsignacion,
-                    'noticeDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d'),
-                    'assignmentDate' => Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d'),
-                    'openingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d'),
-                    'closingDate' => Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d'),
+                    'noticeDate' => !empty($request->fechaAviso) ? Carbon::createFromFormat('d/m/Y', $request->fechaAviso)->format('Y-m-d') : null,
+                    'assignmentDate' => !empty($request->fechaAsignacion) ? Carbon::createFromFormat('d/m/Y', $request->fechaAsignacion)->format('Y-m-d') : null,
+                    'openingDate' => !empty($request->fechaApertura) ? Carbon::createFromFormat('d/m/Y', $request->fechaApertura)->format('Y-m-d') : null,
+                    'closingDate' => !empty($request->fechaCierre) ? Carbon::createFromFormat('d/m/Y', $request->fechaCierre)->format('Y-m-d') : null,
                     'notes' => $request->observaciones ?? '',
                 ]);
             }
@@ -740,6 +743,7 @@ class VacanteController extends Controller
             return redirect()->route('vacante.index')->with('success', 'Vacante editada correctamente');
         } catch (\Exception $e) {
             DB::rollback();
+            dd($e->getMessage());
             return redirect()->route('vacante.index')->with('error', 'Error al actualizar la vacante: ' . $e->getMessage());
         }
     }
