@@ -99,9 +99,9 @@ class VacanteController extends Controller
             $zona = $user->zona;
             $dependencia = $user->dependencia;
             $isDeleted = false;
-            $programasEducUsuario = DB::table('zona__dependencia__programas')
-                ->where('id_zona','=',$zona)
-                ->where('clave_dependencia','=',$dependencia)
+            $programasEducUsuario = DB::table('regions_educational_programs')
+                ->where('region_code','=',$zona)
+                ->where('departament_code','=',$dependencia)
                 ->get();
 
             if (count($vac) === 0 ){
@@ -111,13 +111,13 @@ class VacanteController extends Controller
                 $busqueda = "";
                 $isDeleted = false;
 
-                $vacantes = DB::table('vacantes')
-                    ->join('periodos',function($join) use ($zona,$dependencia){
-                        $join->on('vacantes.clavePeriodo','=','periodos.clavePeriodo')
-                            ->where('periodos.actual',"=",1)
+                $vacantes = DB::table('educational_experience_vacancies')
+                    ->join('school_Periods',function($join) use ($zona,$dependencia){
+                        $join->on('educational_experience_vacancies.school_period_code','=','school_Periods.code')
+                            ->where('school_Periods.current',"=",1)
                             ->whereNull('deleted_at')
-                            ->where('numZona','=',$zona)
-                            ->where('numDependencia','=',$dependencia);
+                            ->where('region_code','=',$zona)
+                            ->where('departament_code','=',$dependencia);
                     })
                     ->paginate('10')
                 ;
