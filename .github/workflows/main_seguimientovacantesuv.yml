@@ -12,12 +12,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
+      # Instalar PHP y Composer
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -27,7 +26,20 @@ jobs:
       - name: Install PHP dependencies (Production)
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Zip artifact for deployment (with vendor)
+      # Instalar Node y NPM
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install NPM dependencies
+        run: npm install
+
+      - name: Build frontend assets
+        run: npm run build
+
+      # Empaquetar todo, incluyendo vendor y public/build
+      - name: Zip artifact for deployment
         run: zip -r release.zip . -x "*.git*" "node_modules/*" "tests/*"
 
       - name: Upload artifact for deployment job
@@ -39,9 +51,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - name: Download artifact from build job
