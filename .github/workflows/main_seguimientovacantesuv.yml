@@ -56,13 +56,17 @@ jobs:
           echo '#!/bin/bash' > startup.sh
           echo 'mkdir -p /home/site/wwwroot/storage/framework/{cache,sessions,views}' >> startup.sh
           echo 'mkdir -p /home/site/wwwroot/bootstrap/cache' >> startup.sh
-          echo 'chmod -R 775 /home/site/wwwroot/storage' >> startup.sh
-          echo 'chmod -R 775 /home/site/wwwroot/bootstrap/cache' >> startup.sh
+          echo 'chmod -R 775 /home/site/wwwroot/storage /home/site/wwwroot/bootstrap/cache' >> startup.sh
           echo 'cd /home/site/wwwroot' >> startup.sh
+          echo 'if [ ! -f .env ]; then cp .env.example .env; fi' >> startup.sh
+          echo 'php artisan key:generate --force' >> startup.sh
           echo 'php artisan config:cache' >> startup.sh
+          echo 'php artisan route:cache' >> startup.sh
           echo 'php artisan view:cache' >> startup.sh
+          echo 'cp -r public/* .' >> startup.sh
           echo 'apache2-foreground' >> startup.sh
           chmod +x startup.sh
+
 
       # Configuración específica para Azure
       - name: Add Azure specific configurations
