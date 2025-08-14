@@ -22,9 +22,12 @@ jobs:
         with:
           php-version: '8.2'
           tools: composer
+          extensions: mbstring, openssl, pdo, pdo_mysql, tokenizer, xml, ctype, json
 
       - name: Install PHP dependencies (Production)
-        run: composer install --no-dev --optimize-autoloader
+        run: |
+          composer install --no-dev --optimize-autoloader
+          cp .env.example .env
 
       # Instalar Node y NPM
       - name: Setup Node.js
@@ -38,12 +41,41 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      # Crear carpetas necesarias de Laravel si no existen
-      - name: Ensure Laravel cache paths
+      # Crear carpetas necesarias de Laravel y ajustar permisos
+      - name: Prepare Laravel directories
         run: |
           mkdir -p storage/framework/{cache,sessions,views}
           mkdir -p bootstrap/cache
           chmod -R 775 storage bootstrap/cache
+          touch storage/framework/cache/.gitkeep
+          touch storage/framework/sessions/.gitkeep
+          touch storage/framework/views/.gitkeep
+          touch bootstrap/cache/.gitkeep
+
+      # Generar clave de aplicación
+      - name: Generate application key
+        run: php artisan key:generate
+
+      # Crear script de inicio para Azure
+      - name: Create startup script
+        run: |
+          echo '#!/bin/bash' > startup.sh
+          echo 'mkdir -p /home/site/wwwroot/storage/framework/{cache,sessions,views}' >> startup.sh
+          echo 'mkdir -p /home/site/wwwroot/bootstrap/cache' >> startup.sh
+          echo 'chmod -R 775 /home/site/wwwroot/storage' >> startup.sh
+          echo 'chmod -R 775 /home/site/wwwroot/bootstrap/cache' >> startup.sh
+          echo 'cd /home/site/wwwroot' >> startup.sh
+          echo 'php artisan config:cache' >> startup.sh
+          echo 'php artisan view:cache' >> startup.sh
+          echo 'apache2-foreground' >> startup.sh
+          chmod +x startup.sh
+
+      # Configuración específica para Azure
+      - name: Add Azure specific configurations
+        run: |
+          mkdir -p .azure
+          echo "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true" > .azure/.env
+          echo "SCM_DO_BUILD_DURING_DEPLOYMENT=false" >> .azure/.env
 
       # Empaquetar todo
       - name: Zip artifact for deployment
