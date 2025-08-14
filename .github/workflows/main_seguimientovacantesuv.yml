@@ -25,11 +25,9 @@ jobs:
           extensions: mbstring, openssl, pdo, pdo_mysql, tokenizer, xml, ctype, json
 
       - name: Install PHP dependencies (Production)
-        run: |
-          composer install --no-dev --optimize-autoloader
-          cp .env.example .env
+        run: composer install --no-dev --optimize-autoloader
 
-      # Instalar Node y NPM
+      # Instalar Node.js y NPM
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -41,7 +39,7 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      # Crear carpetas necesarias de Laravel y ajustar permisos
+      # Preparar estructura de directorios de Laravel
       - name: Prepare Laravel directories
         run: |
           mkdir -p storage/framework/{cache,sessions,views}
@@ -52,11 +50,7 @@ jobs:
           touch storage/framework/views/.gitkeep
           touch bootstrap/cache/.gitkeep
 
-      # Generar clave de aplicación
-      - name: Generate application key
-        run: php artisan key:generate
-
-      # Crear script de inicio para Azure
+      # Script de inicio para Azure (sin generación de clave)
       - name: Create startup script
         run: |
           echo '#!/bin/bash' > startup.sh
@@ -77,9 +71,9 @@ jobs:
           echo "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true" > .azure/.env
           echo "SCM_DO_BUILD_DURING_DEPLOYMENT=false" >> .azure/.env
 
-      # Empaquetar todo
+      # Empaquetar para despliegue
       - name: Zip artifact for deployment
-        run: zip -r release.zip . -x "*.git*" "node_modules/*" "tests/*"
+        run: zip -r release.zip . -x "*.git*" "node_modules/*" "tests/*" ".env*"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
