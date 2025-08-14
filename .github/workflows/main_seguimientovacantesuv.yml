@@ -22,7 +22,7 @@ jobs:
         with:
           php-version: '8.2'
           tools: composer
-          extensions: mbstring, openssl, pdo, pdo_mysql, tokenizer, xml, ctype, json
+          extensions: mbstring, openssl, pdo, pdo_mysql, pdo_sqlsrv, sqlsrv, tokenizer, xml, ctype, json
 
       - name: Install PHP dependencies (Production)
         run: composer install --no-dev --optimize-autoloader
@@ -50,7 +50,7 @@ jobs:
           touch storage/framework/views/.gitkeep
           touch bootstrap/cache/.gitkeep
 
-      # Script de inicio para Azure (sin generación de clave)
+      # Script de inicio para Azure
       - name: Create startup script
         run: |
           echo '#!/bin/bash' > startup.sh
@@ -63,11 +63,11 @@ jobs:
           echo 'php artisan config:cache' >> startup.sh
           echo 'php artisan route:cache' >> startup.sh
           echo 'php artisan view:cache' >> startup.sh
-          echo 'echo "DocumentRoot /home/site/wwwroot/public" > /etc/apache2/sites-available/000-default.conf' >> startup.sh
-          echo 'echo "<Directory /home/site/wwwroot/public>" >> /etc/apache2/sites-available/000-default.conf' >> startup.sh
-          echo 'echo "    AllowOverride All" >> /etc/apache2/sites-available/000-default.conf' >> startup.sh
-          echo 'echo "    Require all granted" >> /etc/apache2/sites-available/000-default.conf' >> startup.sh
-          echo 'echo "</Directory>" >> /etc/apache2/sites-available/000-default.conf' >> startup.sh
+          echo 'sed -i "s|DocumentRoot /home/site/wwwroot|DocumentRoot /home/site/wwwroot/public|g" /etc/apache2/sites-enabled/000-default.conf' >> startup.sh
+          echo 'echo "<Directory /home/site/wwwroot/public>" >> /etc/apache2/sites-enabled/000-default.conf' >> startup.sh
+          echo 'echo "    AllowOverride All" >> /etc/apache2/sites-enabled/000-default.conf' >> startup.sh
+          echo 'echo "    Require all granted" >> /etc/apache2/sites-enabled/000-default.conf' >> startup.sh
+          echo 'echo "</Directory>" >> /etc/apache2/sites-enabled/000-default.conf' >> startup.sh
           echo 'apache2-foreground' >> startup.sh
           chmod +x startup.sh
 
