@@ -63,10 +63,13 @@ jobs:
           echo 'php artisan config:cache' >> startup.sh
           echo 'php artisan route:cache' >> startup.sh
           echo 'php artisan view:cache' >> startup.sh
-          echo 'cp -r public/* .' >> startup.sh
+          echo 'echo "DocumentRoot /home/site/wwwroot/public" > /etc/apache2/sites-available/000-default.conf' >> startup.sh
+          echo 'echo "<Directory /home/site/wwwroot/public>" >> /etc/apache2/sites-available/000-default.conf' >> startup.sh
+          echo 'echo "    AllowOverride All" >> /etc/apache2/sites-available/000-default.conf' >> startup.sh
+          echo 'echo "    Require all granted" >> /etc/apache2/sites-available/000-default.conf' >> startup.sh
+          echo 'echo "</Directory>" >> /etc/apache2/sites-available/000-default.conf' >> startup.sh
           echo 'apache2-foreground' >> startup.sh
           chmod +x startup.sh
-
 
       # Configuración específica para Azure
       - name: Add Azure specific configurations
