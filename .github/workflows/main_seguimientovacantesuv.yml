@@ -38,7 +38,14 @@ jobs:
       - name: Build frontend assets
         run: npm run build
 
-      # Empaquetar todo, incluyendo vendor y public/build
+      # Crear carpetas necesarias de Laravel si no existen
+      - name: Ensure Laravel cache paths
+        run: |
+          mkdir -p storage/framework/{cache,sessions,views}
+          mkdir -p bootstrap/cache
+          chmod -R 775 storage bootstrap/cache
+
+      # Empaquetar todo
       - name: Zip artifact for deployment
         run: zip -r release.zip . -x "*.git*" "node_modules/*" "tests/*"
 
