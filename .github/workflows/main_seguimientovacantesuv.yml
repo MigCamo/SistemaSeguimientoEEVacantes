@@ -45,10 +45,6 @@ jobs:
           mkdir -p storage/framework/{cache,sessions,views}
           mkdir -p bootstrap/cache
           chmod -R 775 storage bootstrap/cache
-          touch storage/framework/cache/.gitkeep
-          touch storage/framework/sessions/.gitkeep
-          touch storage/framework/views/.gitkeep
-          touch bootstrap/cache/.gitkeep
 
       # Script de inicio para Azure
       - name: Create startup script
@@ -63,11 +59,14 @@ jobs:
           echo 'php artisan config:cache' >> startup.sh
           echo 'php artisan route:cache' >> startup.sh
           echo 'php artisan view:cache' >> startup.sh
+          echo 'a2enmod rewrite' >> startup.sh
           echo 'sed -i "s|DocumentRoot /home/site/wwwroot|DocumentRoot /home/site/wwwroot/public|g" /etc/apache2/sites-enabled/000-default.conf' >> startup.sh
           echo 'echo "<Directory /home/site/wwwroot/public>" >> /etc/apache2/sites-enabled/000-default.conf' >> startup.sh
           echo 'echo "    AllowOverride All" >> /etc/apache2/sites-enabled/000-default.conf' >> startup.sh
           echo 'echo "    Require all granted" >> /etc/apache2/sites-enabled/000-default.conf' >> startup.sh
           echo 'echo "</Directory>" >> /etc/apache2/sites-enabled/000-default.conf' >> startup.sh
+          echo 'ls -la /home/site/wwwroot' >> startup.sh
+          echo 'ls -la /home/site/wwwroot/public' >> startup.sh
           echo 'apache2-foreground' >> startup.sh
           chmod +x startup.sh
 
