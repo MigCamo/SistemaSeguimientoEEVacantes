@@ -15,7 +15,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       # Instalar PHP y Composer
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
