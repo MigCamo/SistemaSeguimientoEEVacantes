@@ -22,7 +22,7 @@ jobs:
           extensions: mbstring, openssl, pdo, pdo_mysql, pdo_sqlsrv, sqlsrv, tokenizer, xml, ctype, json
 
       - name: Install PHP dependencies (Production)
-        run: composer install --no-dev --optimize-autoloader
+        run: composer install --no-dev --optimize-autoloader --working-dir=.
 
       # Instalar Node.js y compilar assets
       - name: Setup Node.js
@@ -42,6 +42,10 @@ jobs:
           mkdir -p storage/framework/{cache,sessions,views}
           mkdir -p bootstrap/cache
           chmod -R 775 storage bootstrap/cache
+
+      # Verificar que vendor existe
+      - name: Check vendor folder
+        run: ls -lah vendor || echo "⚠️ Vendor folder missing!"
 
       # Crear script de inicio
       - name: Create startup script
