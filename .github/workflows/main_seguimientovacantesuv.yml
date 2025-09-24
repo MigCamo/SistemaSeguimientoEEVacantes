@@ -48,34 +48,27 @@ jobs:
       # Script de inicio para Azure
       - name: Create startup script
         run: |
-          echo '#!/bin/bash' > startup.sh
-          # 1. Compilación de Activos (Node/NPM)
-          echo 'echo "Instalando dependencias de Node.js y compilando para producción..."' >> startup.sh
-          echo 'npm install' >> startup.sh
-          echo 'npm run build --if-present' >> startup.sh
-
-          # 2. Caché de Configuración y Rutas (Asegura que la APP_KEY se use)
-          echo 'echo "Limpiando cachés del framework..."' >> startup.sh
-          echo 'php artisan config:clear' >> startup.sh
-          echo 'php artisan route:clear' >> startup.sh
-          echo 'php artisan view:clear' >> startup.sh
-
-          # 3. Configuración del Document Root de Nginx (Soluciona el 404)
-          echo 'echo "Aplicando configuración Nginx para el directorio public..."' >> startup.sh
-          echo 'sed -i "s|root /home/site/wwwroot;|root /home/site/wwwroot/public;|g" /etc/nginx/sites-available/default' >> startup.sh
-          echo 'sed -i "s|try_files \$uri \$uri/ =404;|try_files \$uri \$uri/ /index.php?\$query_string;|g" /etc/nginx/sites-available/default' >> startup.sh
-
-          # 4. Reiniciar Nginx para aplicar la nueva configuración
-          echo 'echo "Reiniciando servicio Nginx..."' >> startup.sh
-          echo 'service nginx reload' >> startup.sh
-
-          # 5. Mantener el contenedor activo (Final)
-          echo 'echo "Ejecutando proceso principal Nginx..."' >> startup.sh
-          echo 'sleep 60d' >> startup.sh
-
-          # Manten el comando del punto de entrada del contenedor original
-          echo 'php-fpm' >> startup.sh
-          chmod +x startup.sh
+          #!/bin/bash
+          # 1. Caché de Configuración y Rutas (Lee variables de Azure, incluyendo APP_KEY)
+          echo "Limpiando cachés del framework (para usar variables de Azure)..."
+          php artisan config:clear
+          php artisan route:clear
+          php artisan view:clear
+          # 2. Configuración del Document Root de Nginx (CORRIGE EL 404)
+          # Asegúrate de que el archivo existe y es modificable.
+          NGINX_CONF="/etc/nginx/sites-available/default"
+          echo "Aplicando configuración Nginx para el directorio public..."
+          # Reemplazar la carpeta raíz (Document Root)
+          sed -i 's|root /home/site/wwwroot;|root /home/site/wwwroot/public;|g' ${NGINX_CONF}
+          # Reemplazar el ruteo (para que el framework maneje las rutas)
+          sed -i 's|try_files \$uri \$uri/ =404;|try_files \$uri \$uri/ /index.php?\$query_string;|g' ${NGINX_CONF}
+          # 3. Reiniciar Nginx para aplicar la nueva configuración
+          echo "Reiniciando servicio Nginx..."
+          service nginx reload
+          # 4. Mantener el contenedor activo (El método más fiable en Azure Linux)
+          # Esto arranca Nginx en primer plano y mantiene el contenedor vivo.
+          echo "Ejecutando proceso principal Nginx..."
+          /usr/sbin/nginx -g 'daemon off;'
 
       # Configuración específica para Azure
       - name: Add Azure specific configurations
