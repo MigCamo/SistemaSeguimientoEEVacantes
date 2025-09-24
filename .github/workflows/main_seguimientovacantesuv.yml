@@ -50,22 +50,24 @@ jobs:
       # Crear script de inicio
       - name: Create startup script
         run: |
-          cat > startup.sh <<'EOF'
+          cat > startup.sh << 'EOF'
           #!/bin/bash
           set -e
           echo "===== Iniciando startup.sh para Laravel en Azure ====="
 
-          php /home/site/wwwroot/artisan config:clear
-          php /home/site/wwwroot/artisan route:clear
-          php /home/site/wwwroot/artisan view:clear
+          cd /home/site/wwwroot
 
-          NGINX_CONF="/etc/nginx/sites-available/default"
-          sed -i 's|root /home/site/wwwroot;|root /home/site/wwwroot/public;|g' $NGINX_CONF
-          sed -i 's|try_files \$uri \$uri/ =404;|try_files \$uri \$uri/ /index.php?\$query_string;|g' $NGINX_CONF
+          # Limpiar caches de Laravel
+          php artisan config:clear || true
+          php artisan route:clear || true
+          php artisan view:clear || true
 
-          exec /usr/sbin/nginx -g "daemon off;"
+          # Opcional: correr migraciones automáticas
+          # php artisan migrate --force || true
+
+          # No levantar nginx/php-fpm, Azure ya los gestiona
+          echo "Startup script terminado, Azure maneja nginx/php-fpm por defecto."
           EOF
-
           chmod +x startup.sh
 
       # Configuración específica para Azure
