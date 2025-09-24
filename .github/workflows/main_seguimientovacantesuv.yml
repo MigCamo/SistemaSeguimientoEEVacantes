@@ -50,7 +50,6 @@ jobs:
       # Crear script de inicio
       - name: Create startup script
         run: |
-          cat > startup.sh << 'EOF'
           #!/bin/bash
           set -e
           echo "===== Iniciando startup.sh para Laravel en Azure ====="
@@ -62,11 +61,16 @@ jobs:
           php artisan route:clear || true
           php artisan view:clear || true
 
-          # Opcional: correr migraciones automáticas
-          # php artisan migrate --force || true
+          # Redirigir la raíz web de Azure (html) hacia public/
+          if [ -d "/home/site/wwwroot/public" ]; then
+            rm -rf /home/site/wwwroot/html
+            ln -s /home/site/wwwroot/public /home/site/wwwroot/html
+            echo "Symlink creado: /home/site/wwwroot/html -> public"
+          else
+            echo "⚠️ No existe carpeta public/, revisa el deploy"
+          fi
 
-          # No levantar nginx/php-fpm, Azure ya los gestiona
-          echo "Startup script terminado, Azure maneja nginx/php-fpm por defecto."
+          echo "Startup script terminado, Azure manejará nginx/php-fpm."
           EOF
           chmod +x startup.sh
 
