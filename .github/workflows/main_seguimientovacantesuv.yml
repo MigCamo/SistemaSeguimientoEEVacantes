@@ -50,6 +50,9 @@ jobs:
       # Crear script de inicio
       - name: Create startup script
         run: |
+          echo '===== Iniciando startup.sh para Laravel en Azure ====='
+
+          cat > startup.sh <<'EOF'
           #!/bin/bash
           set -e
           echo "===== Iniciando startup.sh para Laravel en Azure ====="
@@ -72,6 +75,7 @@ jobs:
 
           echo "Startup script terminado, Azure manejará nginx/php-fpm."
           EOF
+
           chmod +x startup.sh
 
       # Configuración específica para Azure
