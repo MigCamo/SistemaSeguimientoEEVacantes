@@ -13,28 +13,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Instalar PHP y Composer
+      # Instalar PHP y Composer con extensiones
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
           tools: composer
-          extensions: mbstring, openssl, pdo, pdo_mysql, tokenizer, xml, ctype, json, gd
+          extensions: mbstring, openssl, pdo, pdo_mysql, pdo_sqlsrv, sqlsrv, tokenizer, xml, ctype, json, gd, iconv
 
-      # Instalar drivers SQL Server
-      - name: Install SQLSRV drivers
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y unixodbc-dev g++ make autoconf libc-dev pkg-config
-          sudo pecl install sqlsrv pdo_sqlsrv
-          echo "extension=sqlsrv.so" | sudo tee /etc/php/8.2/cli/conf.d/20-sqlsrv.ini
-          echo "extension=pdo_sqlsrv.so" | sudo tee /etc/php/8.2/cli/conf.d/20-pdo_sqlsrv.ini
-
-      # Instalar dependencias PHP
       - name: Install PHP dependencies (Production)
         run: composer install --no-dev --optimize-autoloader --working-dir=.
 
-      # Instalar Node.js y compilar assets
+      # Instalar Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -53,23 +43,17 @@ jobs:
           mkdir -p bootstrap/cache
           chmod -R 775 storage bootstrap/cache
 
-      # Crear script de inicio
+      # Verificar que vendor exista
+      - name: Check vendor folder
+        run: ls -lah vendor || echo "⚠️ Vendor folder missing!"
+
+      # Crear startup.sh
       - name: Create startup script
         run: |
           cat > startup.sh <<'EOF'
           #!/bin/bash
           set -e
-          echo "===== Iniciando startup.sh para Laravel en Azure ====="
-          cd /home/site/wwwroot
-          php artisan config:clear || true
-          php artisan route:clear || true
-          php artisan view:clear || true
-          if [ -d "/home/site/wwwroot/public" ]; then
-            rm -rf /home/site/wwwroot/html
-            ln -s /home/site/wwwroot/public /home/site/wwwroot/html
-            echo "Symlink creado: /home/site/wwwroot/html -> public"
-          fi
-          echo "Startup script terminado, Azure manejará nginx/php-fpm."
+          /home/site/wwwroot/startup.sh
           EOF
           chmod +x startup.sh
 
