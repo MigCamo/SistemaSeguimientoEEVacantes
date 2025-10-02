@@ -1,31 +1,44 @@
 #!/bin/bash
+set -e
 
-# 1. Compilación de Activos (Node/NPM)
-echo "Instalando dependencias de Node.js y compilando para producción..."
-npm install
-npm run build --if-present
+echo "===== Iniciando startup.sh para Laravel en Azure ====="
 
-# 2. Caché de Configuración y Rutas (Asegura que la APP_KEY se use)
-# Borrar la caché para forzar al framework a leer las variables de entorno de Azure.
-echo "Limpiando cachés del framework..."
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
+cd /home/site/wwwroot
 
-# 3. Configuración del Document Root de Nginx (Soluciona el 404)
-# Modifica el archivo de configuración por defecto de Nginx
-echo "Aplicando configuración Nginx para el directorio public..."
+# 1. Compilar assets si existen
+if [ -f package.json ]; then
+    echo "Instalando dependencias de Node.js..."
+    npm install
+    echo "Compilando assets..."
+    npm run build --if-present
+else
+    echo "No se encontró package.json, saltando compilación de frontend."
+fi
 
-# 3a. Reemplazar la carpeta raíz (Document Root)
-sed -i 's|root /home/site/wwwroot;|root /home/site/wwwroot/public;|g' /etc/nginx/sites-available/default
+# 2. Limpiar cachés de Laravel
+echo "Limpiando caches de Laravel..."
+php artisan config:clear || true
+php artisan route:clear || true
+php artisan view:clear || true
 
-# 3b. Reemplazar el ruteo para rutas del framework
-sed -i 's|try_files $uri $uri/ =404;|try_files $uri $uri/ /index.php?$query_string;|g' /etc/nginx/sites-available/default
+# 3. Configurar Document Root
+echo "Configurando raíz web correctamente..."
 
-# 4. Reiniciar Nginx para aplicar la nueva configuración
-echo "Reiniciando servicio Nginx"
-service nginx reload
+# Eliminar archivos que puedan causar conflictos
+rm -f /home/site/wwwroot/index.php
+rm -f /home/site/wwwroot/.htaccess
+rm -f /home/site/wwwroot/robots.txt
 
-# 5. Mantener el contenedor activo (Final)
-echo "Ejecutando proceso principal Nginx..."
-/usr/sbin/nginx -g 'daemon off;'
+# Crear symlink html -> public
+if [ -d "/home/site/wwwroot/public" ]; then
+    rm -rf /home/site/wwwroot/html
+    ln -s /home/site/wwwroot/public /home/site/wwwroot/html
+    echo "Symlink creado: /home/site/wwwroot/html -> public"
+else
+    echo "⚠️ No existe carpeta public/, revisa el deploy"
+fi
+
+# 4. Asegurar permisos
+chmod -R 775 storage bootstrap/cache
+
+echo "Startup script terminado, Azure manejará nginx/php-fpm."
