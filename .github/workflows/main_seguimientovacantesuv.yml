@@ -22,7 +22,7 @@ jobs:
           extensions: mbstring, openssl, pdo, pdo_mysql, pdo_sqlsrv, sqlsrv, tokenizer, xml, ctype, json, gd, iconv
 
       - name: Install PHP dependencies (Production)
-        run: composer install --no-dev --optimize-autoloader --working-dir=.
+        run: composer install --no-dev --optimize-autoloader
 
       # Instalar Node.js
       - name: Setup Node.js
@@ -43,33 +43,11 @@ jobs:
           mkdir -p bootstrap/cache
           chmod -R 775 storage bootstrap/cache
 
-      # Verificar que vendor exista
-      - name: Check vendor folder
-        run: ls -lah vendor || echo "⚠️ Vendor folder missing!"
-
-      # Crear startup.sh
-      - name: Create startup script
-        run: |
-          cat > startup.sh <<'EOF'
-          #!/bin/bash
-          set -e
-          /home/site/wwwroot/startup.sh
-          EOF
-          chmod +x startup.sh
-
-      # Configuración específica para Azure
-      - name: Add Azure specific configurations
-        run: |
-          mkdir -p .azure
-          echo "WEBSITES_ENABLE_APP_SERVICE_STORAGE=true" > .azure/.env
-          echo "SCM_DO_BUILD_DURING_DEPLOYMENT=false" >> .azure/.env
-
-      # Empaquetar artefacto
+      # Empaquetar artefacto (excluyendo cosas innecesarias)
       - name: Zip artifact for deployment
         run: |
-          chmod -R 755 .
           zip -r release.zip . \
-            -x "*.git*" ".github/*" "node_modules/*" "tests/*" "storage/logs/*" ".env*"
+            -x "*.git*" ".github/*" "node_modules/*" "tests/*" "storage/logs/*" ".env*" "vendor/bin/*"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
